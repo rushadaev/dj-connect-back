@@ -125,6 +125,11 @@
       <path value="$PROJECT_DIR$/dj-connect-back/vendor/nunomaduro/termwind" />
       <path value="$PROJECT_DIR$/dj-connect-back/vendor/myclabs/deep-copy" />
       <path value="$PROJECT_DIR$/dj-connect-back/vendor/filp/whoops" />
+      <path value="$PROJECT_DIR$/dj-connect-back/vendor/swagger-api/swagger-ui" />
+      <path value="$PROJECT_DIR$/dj-connect-back/vendor/psr/cache" />
+      <path value="$PROJECT_DIR$/dj-connect-back/vendor/doctrine/annotations" />
+      <path value="$PROJECT_DIR$/dj-connect-back/vendor/darkaonline/l5-swagger" />
+      <path value="$PROJECT_DIR$/dj-connect-back/vendor/zircote/swagger-php" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

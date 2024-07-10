@@ -30,6 +30,15 @@ services:
              php artisan migrate --force &&
              php-fpm"
 
+  swagger-generate:
+    image: dj-connect-app
+    container_name: swagger-generate
+    restart: on-failure
+    depends_on:
+      - dj-connect-app
+    working_dir: /var/www/dj-connect-back
+    command: php artisan l5-swagger:generate
+
   webserver:
     image: nginx:alpine
     container_name: nginx-dj-connect-app

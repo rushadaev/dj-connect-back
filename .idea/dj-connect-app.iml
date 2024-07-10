@@ -6,6 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/dj-connect-back/database/factories" isTestSource="false" packagePrefix="Database\Factories\" />
       <sourceFolder url="file://$MODULE_DIR$/dj-connect-back/database/seeders" isTestSource="false" packagePrefix="Database\Seeders\" />
       <sourceFolder url="file://$MODULE_DIR$/dj-connect-back/tests" isTestSource="true" packagePrefix="Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/brick/math" />
       <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/carbonphp/carbon-doctrine-types" />
       <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/composer" />
@@ -114,6 +116,11 @@
       <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/vlucas/phpdotenv" />
       <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/webmozart/assert" />
+      <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/darkaonline/l5-swagger" />
+      <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/doctrine/annotations" />
+      <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/psr/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/swagger-api/swagger-ui" />
+      <excludeFolder url="file://$MODULE_DIR$/dj-connect-back/vendor/zircote/swagger-php" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
