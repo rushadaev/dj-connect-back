@@ -1,5 +1,5 @@
 <?php
-
+namespace App\Http\Swagger;
 /**
  * @OA\Info(
  *      version="1.0.0",

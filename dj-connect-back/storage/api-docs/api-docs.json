@@ -14,7 +14,7 @@
     },
     "servers": [
         {
-            "url": "http:/127.0.0.1/api/v1",
+            "url": "http://localhost:8080/api/v1",
             "description": "DJ Connect API Server"
         }
     ],
@@ -75,7 +75,12 @@
                     "403": {
                         "description": "Forbidden"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
             }
         },
         "/dj/profile/{id}": {
@@ -120,7 +125,12 @@
                     "404": {
                         "description": "Not Found"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
             },
             "put": {
                 "tags": [
@@ -191,7 +201,12 @@
                     "404": {
                         "description": "Not Found"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
             }
         }
     },
@@ -233,6 +248,14 @@
                     }
                 },
                 "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "telegramAuth": {
+                "type": "apiKey",
+                "description": "Value of TWA.initData() from Telegram Web App. Example: query_id=AAFBaKouAAAAAEFoqi6boeTP&user=%7B%22id%22%3A782919745%2C%22first_name%22%3A%22Ruslan%22%2C%22last_name%22%3A%22Shadaev%22%2C%22username%22%3A%22beilec%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1720091705&hash=1ea39608f5d00f92bb5e7fd37e6cd11c998274ec927cb21899fdccfa626fc74d",
+                "name": "Telegram-Init-Data",
+                "in": "header"
             }
         }
     },

@@ -46,4 +46,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function dj()
+    {
+        return $this->hasOne(DJ::class);
+    }
 }
