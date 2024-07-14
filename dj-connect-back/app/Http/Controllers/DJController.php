@@ -18,10 +18,6 @@ use Illuminate\Http\Request;
  *      )
  * )
  *
- * @OA\Server(
- *      url="http://localhost:8080/api/v1",
- *      description="DJ Connect API Server"
- * )
  *
  * @OA\SecurityScheme(
  *      securityScheme="telegramAuth",

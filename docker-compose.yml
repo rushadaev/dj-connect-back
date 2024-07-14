@@ -1,5 +1,4 @@
 version: '3.9'
-
 services:
   dj-connect-app:
     build:
@@ -9,35 +8,10 @@ services:
     container_name: dj-connect-app
     restart: unless-stopped
     tty: true
-    environment:
-      SERVICE_NAME: dj-connect-app
-      SERVICE_TAGS: dev
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: dj_music_app
-      DB_USERNAME: root
-      DB_PASSWORD: root
-    working_dir: /var/www/dj-connect-back
     volumes:
-      - ./:/var/www
+      - ./dj-connect-back:/var/www/dj-connect-back
     networks:
       - app-network
-    command: >
-      sh -c "cd /var/www/dj-connect-back &&
-             if [ ! -f .env ]; then cp .env.example .env; fi &&
-             php artisan key:generate &&
-             php artisan migrate --force &&
-             php-fpm"
-
-  swagger-generate:
-    image: dj-connect-app
-    container_name: swagger-generate
-    restart: on-failure
-    depends_on:
-      - dj-connect-app
-    working_dir: /var/www/dj-connect-back
-    command: php artisan l5-swagger:generate
 
   webserver:
     image: nginx:alpine
@@ -45,21 +19,21 @@ services:
     restart: unless-stopped
     tty: true
     ports:
-      - "8080:80"
+      - "8082:80"
     volumes:
-      - ./:/var/www
+      - ./dj-connect-back:/var/www/dj-connect-back
       - ./nginx/conf.d:/etc/nginx/conf.d/
       - ./nginx/snippets:/etc/nginx/snippets
     networks:
       - app-network
 
   db:
-    image: mysql:8.0
+    image: mysql:5.7
     container_name: mysql-dj-connect-app
     restart: unless-stopped
     tty: true
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MYSQL_DATABASE: dj_music_app
       MYSQL_ROOT_PASSWORD: root

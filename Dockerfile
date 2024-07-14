@@ -1,42 +1,27 @@
 FROM php:8.2-fpm
 
-# Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/dj-connect-back
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
     libpng-dev \
-    libjpeg62-turbo-dev \
+    libjpeg-dev \
     libfreetype6-dev \
-    libonig-dev \
-    locales \
     zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
     unzip \
-    git \
-    curl
+    git
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN docker-php-ext-install pdo_mysql gd
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+COPY dj-connect-back .
 
-# Copy existing application directory contents
-COPY . /var/www
+# Create .env file and set permissions
+RUN touch .env && \
+    chown www-data:www-data .env && \
+    chmod 644 .env
 
-# Change current user to www
-USER www
+RUN chown -R www-data:www-data .
+USER www-data
 
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
 CMD ["php-fpm"]
