@@ -160,7 +160,6 @@ return [
                     'in' => 'header',
                     'name' => 'Telegram-Init-Data',
                     'description' => 'Value of TWA.initData() from Telegram Web App.',
-                    'default' => 'query_id=AAFBaKouAAAAAEFoqi6boeTP&user=%7B%22id%22%3A782919745%2C%22first_name%22%3A%22Ruslan%22%2C%22last_name%22%3A%22Shadaev%22%2C%22username%22%3A%22beilec%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1720091705&hash=1ea39608f5d00f92bb5e7fd37e6cd11c998274ec927cb21899fdccfa626fc74d',
                 ],
                 /*
                  * Examples of Security schemes

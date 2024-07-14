@@ -8,13 +8,14 @@ use Illuminate\Http\Request;
  * @OA\Info(
  *      version="1.0.0",
  *      title="DJ Connect API",
- *      description="API documentation for DJ Connect",
+ *      description="API documentation for DJ Connect. All requests must include header Telegram-Init-Data: ${TWA.initData()}",
  *      @OA\Contact(
- *          email="support@djconnect.com"
+ *          name="Contact Developer",
+ *          url="https://t.me/beilec"
  *      ),
  *      @OA\License(
- *          name="Apache 2.0",
- *          url="http://www.apache.org/licenses/LICENSE-2.0.html"
+ *          name="Contact Lead",
+ *          url="https://t.me/alievdenis1"
  *      )
  * )
  *
