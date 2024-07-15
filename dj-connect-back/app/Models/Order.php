@@ -96,4 +96,30 @@ class Order extends Model
             $transaction->cancel();
         }
     }
+
+    public function getDjTelegramIdAttAttribute()
+    {
+        return $this->dj->telegram_id;
+    }
+    public function getUserTelegramIdAttAttribute()
+    {
+        return $this->user->telegram_id;
+    }
+
+    public function getTelegramIds()
+    {
+        return [
+            'dj' => $this->dj->telegram_id,
+            'user' => $this->user->telegram_id
+        ];
+    }
+
+    public function getDjPaymentDetails()
+    {
+        return [
+            'amount' => $this->price,
+            'payment_url' => $this->transactions()->where('status', Transaction::STATUS_PENDING)->first()->payment_url,
+            'payment_details' => $this->dj->payment_details,
+        ];
+    }
 }

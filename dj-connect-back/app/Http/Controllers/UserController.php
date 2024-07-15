@@ -111,7 +111,19 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        // Implementation for login
+        $user = User::firstOrCreate(
+            ['telegram_id' => $request['telegram_id']],
+            [
+                'telegram_id' => $request['telegram_id'],
+                'name' => '',
+                'phone_number' => $request['telegram_id'] ?? null,
+                'email' =>  $request['telegram_id'].'@telegram.com',
+            ]
+        );
+
+        Auth::login($user);
+
+        return $user;
     }
 
     /**

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\UsesTelegram;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Schema(
@@ -125,50 +126,69 @@ class OrderController extends Controller
         $validated = $request->validate([
             'dj_id' => 'required|exists:djs,id',
             'track_id' => 'required|exists:tracks,id',
-            'price' => 'required|numeric|min:0',
             'message' => 'nullable|string|max:255',
         ]);
-
+    
         $dj = DJ::find($validated['dj_id']);
         $track = Track::find($validated['track_id']);
-
+        
+        $user_id = Auth::id();
+        if (!$user_id && $request->telegram_id) {
+            $userController = new UserController();
+            $userequest = new Request(['telegram_id' => $request->telegram_id]);
+            $user = $userController->login($userequest);
+    
+            if ($user) {
+                $user_id = $user->id;
+            }
+        }
         if (!$dj || !$track) {
             return response()->json(['error' => 'DJ or Track not found'], 404);
         }
-
+    
+        // Retrieve the price from the pivot table
+        $pivotData = $dj->tracks()->where('track_id', $validated['track_id'])->first();
+    
+        if (!$pivotData || !isset($pivotData->pivot->price)) {
+            return response()->json(['error' => 'Price not found for the given DJ and Track'], 404);
+        }
+    
+        $price = $pivotData->pivot->price;
+    
         $order = Order::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user_id,
             'dj_id' => $validated['dj_id'],
             'track_id' => $validated['track_id'],
-            'price' => $validated['price'],
+            'price' => $price,
             'message' => $validated['message'] ?? '',
             'status' => 'pending',
         ]);
+    
 
         $telegram = $this->useTelegram();
         $userTelegramId = Auth::user()->telegram_id;
         $djTelegramId = $dj->telegram_id;
 
-        $message = "\nTrack: {$track->name}\nPrice: {$order->price}\nMessage: {$order->message}";
+        $message = "\nDJ: {$dj->stage_name}\nТрек: {$track->name}\nЦена: {$order->price}\nСообщение: {$order->message}";
 
         // User Inline Keyboard
         $userKeyboard = new InlineKeyboardMarkup([
-            [['text' => 'Cancel', 'callback_data' => "cancel_{$order->id}"]],
+            [['text' => '🙅‍♂️Отменить', 'callback_data' => "cancel_{$order->id}"]],
         ]);
 
         if ($userTelegramId) {
-            $telegram->sendMessage($userTelegramId, "🎉We Got Your Order!:{$message}", null, false, null, $userKeyboard);
+            $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} отправлен:{$message}", null, false, null, $userKeyboard);
         }
 
         // DJ Inline Keyboard
         $djKeyboard = new InlineKeyboardMarkup([
-            [['text' => 'Accept', 'callback_data' => "accept_{$order->id}"]],
-            [['text' => 'Change Price', 'callback_data' => "change_price_{$order->id}"]],
-            [['text' => 'Decline', 'callback_data' => "decline_{$order->id}"]],
+            [['text' => '✅Принять', 'callback_data' => "accept_{$order->id}"]],
+            [['text' => '💰Изменить Цену', 'callback_data' => "change_price_{$order->id}"]],
+            [['text' => '💩Отказать в песне', 'callback_data' => "decline_{$order->id}"]],
         ]);
 
         if ($djTelegramId) {
-            $telegram->sendMessage($djTelegramId, "🎧You Have A New Order!{$message}", null, false, null, $djKeyboard);
+            $telegram->sendMessage($djTelegramId, "🎧У вас новый #заказ_{$order->id}! {$message}", null, false, null, $djKeyboard);
         }
 
         return response()->json($order);
@@ -346,12 +366,12 @@ class OrderController extends Controller
         $order = Order::find($order_id);
 
         if (!$order) {
+            Log::error("Order not found for cancellation", ['order_id' => $order_id]);
             return response()->json(['error' => 'Order not found'], 404);
         }
-
         $order->cancel();
 
-        return response()->json(['success' => true, 'message' => 'Order and associated transactions cancelled']);
+        return response()->json(['success' => true, 'message' => 'Order and associated transactions cancelled'], 200);
     }
 
 

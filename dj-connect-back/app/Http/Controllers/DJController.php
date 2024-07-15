@@ -255,12 +255,12 @@ class DJController extends Controller
     public function getTracks($dj_id)
     {
         $dj = DJ::find($dj_id);
-
+        
         if (!$dj) {
             return response()->json(['error' => 'DJ not found'], 404);
         }
 
-        $tracks = $dj->tracks;
+        $tracks = $dj->tracks()->get(['tracks.*', 'dj_track.price']);
 
         return response()->json($tracks);
     }
