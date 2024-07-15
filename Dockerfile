@@ -3,6 +3,7 @@ FROM php:8.2-fpm
 WORKDIR /var/www/dj-connect-back
 
 RUN apt-get update && apt-get install -y \
+    libpq-dev \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -10,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git
 
-RUN docker-php-ext-install pdo_mysql gd
+RUN docker-php-ext-install pdo pdo_pgsql gd
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

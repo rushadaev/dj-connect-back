@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 services:
   dj-connect-app:
     build:
@@ -28,16 +28,16 @@ services:
       - app-network
 
   db:
-    image: mysql:5.7
+    image: postgres:16
     container_name: mysql-dj-connect-app
     restart: unless-stopped
     tty: true
     ports:
-      - "3307:3306"
+      - "5432:5432"
     environment:
-      MYSQL_DATABASE: dj_music_app
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_PASSWORD: root
+      POSTGRES_DB: dj_music_app
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
     volumes:
       - dbdata:/var/lib/mysql
     networks:

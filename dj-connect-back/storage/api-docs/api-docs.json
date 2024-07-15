@@ -15,6 +15,10 @@
     },
     "servers": [
         {
+            "url": "http://localhost:8082/api/v1",
+            "description": "DJ Connect API Server"
+        },
+        {
             "url": "https://dj-connect.xyz/api/v1"
         }
     ],
@@ -40,10 +44,6 @@
                                     "city": {
                                         "type": "string",
                                         "example": "New York"
-                                    },
-                                    "base_prices": {
-                                        "type": "string",
-                                        "example": "100"
                                     },
                                     "payment_details": {
                                         "type": "string",
@@ -164,10 +164,6 @@
                                         "type": "string",
                                         "example": "New York"
                                     },
-                                    "base_prices": {
-                                        "type": "string",
-                                        "example": "100"
-                                    },
                                     "payment_details": {
                                         "type": "string",
                                         "example": "Bank details or any payment information"
@@ -208,10 +204,1069 @@
                     }
                 ]
             }
+        },
+        "/dj/{dj_id}/track": {
+            "post": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Add a new track",
+                "description": "Allows a DJ to add a new track",
+                "operationId": "addTrack",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Track Name"
+                                    },
+                                    "artist": {
+                                        "type": "string",
+                                        "example": "Artist Name"
+                                    },
+                                    "duration": {
+                                        "type": "string",
+                                        "example": "3:45"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Track"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "DJ not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/dj/{dj_id}/tracks": {
+            "get": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Get tracks by DJ ID",
+                "description": "Returns the list of tracks associated with a specific DJ",
+                "operationId": "getDJTracks",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Track"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "DJ not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/dj/{dj_id}/track/{track_id}/price": {
+            "patch": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Update track price",
+                "description": "Allows a DJ to update the price of a track",
+                "operationId": "updateTrackPrice",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "track_id",
+                        "in": "path",
+                        "description": "Track ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 19.99
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 19.99
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "DJ or Track not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/dj/{dj_id}/statistics": {
+            "get": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Get statistics for a DJ",
+                "description": "Retrieve various statistics for a DJ including total orders, total income, average price, etc.",
+                "operationId": "3dbb0c27547adac2bd39534c9122a09f",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "ID of the DJ",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_orders": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "total_income": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 150.75
+                                        },
+                                        "average_price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 30.15
+                                        },
+                                        "min_price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 20
+                                        },
+                                        "max_price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 50
+                                        },
+                                        "most_popular_tracks": {
+                                            "properties": {
+                                                "track_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "count": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "DJ not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "DJ not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders": {
+            "post": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Create an order",
+                "description": "Allows a user to create an order for a track",
+                "operationId": "createOrder",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dj_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "track_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 19.99
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Please play this track!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Order"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "DJ or Track not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders/{order_id}/accept": {
+            "patch": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Accept an order",
+                "description": "Allows a DJ to accept an order",
+                "operationId": "acceptOrder",
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "description": "Order ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 19.99
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Order accepted"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order accepted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "order": {
+                                            "$ref": "#/components/schemas/Order"
+                                        },
+                                        "transaction": {
+                                            "$ref": "#/components/schemas/Transaction"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders/{order_id}/decline": {
+            "patch": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Decline an order",
+                "description": "Allows a DJ to decline an order",
+                "operationId": "declineOrder",
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "description": "Order ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Order declined"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order declined successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Order declined"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Order not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders/{order_id}/cancel": {
+            "patch": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Cancel an order",
+                "description": "Allows a user to cancel an order and associated transactions",
+                "operationId": "cancelOrder",
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "description": "Order ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order and associated transactions cancelled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Order and associated transactions cancelled"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Order not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/dj/{dj_id}/orders": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get orders for DJ",
+                "description": "Returns the list of orders for a specific DJ",
+                "operationId": "getOrdersForDJ",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Order"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "DJ not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/orders": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get orders for user",
+                "description": "Returns the list of orders for the authenticated user",
+                "operationId": "getOrdersForUser",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Order"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions/{transaction_id}/mark-paid": {
+            "patch": {
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "Mark a transaction as paid",
+                "description": "Allows a DJ to mark a transaction as paid",
+                "operationId": "markTransactionPaid",
+                "parameters": [
+                    {
+                        "name": "transaction_id",
+                        "in": "path",
+                        "description": "Transaction ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction marked as paid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transaction marked as paid"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Transaction not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions/{transaction_id}/cancel": {
+            "patch": {
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "Cancel a transaction",
+                "description": "Allows a DJ to cancel a pending transaction",
+                "operationId": "cancelTransaction",
+                "parameters": [
+                    {
+                        "name": "transaction_id",
+                        "in": "path",
+                        "description": "Transaction ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction cancelled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transaction cancelled"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Transaction not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/profile/{telegram_id}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get a user's profile by Telegram ID",
+                "description": "Returns the details of a specified user by their Telegram ID",
+                "operationId": "getUserProfileByTelegramId",
+                "parameters": [
+                    {
+                        "name": "telegram_id",
+                        "in": "path",
+                        "description": "Telegram ID of the user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "John Doe"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "john.doe@example.com"
+                                        },
+                                        "telegram_id": {
+                                            "type": "string",
+                                            "example": "123456789"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/profile/me": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get the current authenticated user's details",
+                "description": "Returns the details of the authenticated user",
+                "operationId": "getCurrentUser",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "John Doe"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "john.doe@example.com"
+                                        },
+                                        "telegram_id": {
+                                            "type": "string",
+                                            "example": "123456789"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
         "schemas": {
+            "Order": {
+                "title": "Order",
+                "required": [
+                    "user_id",
+                    "dj_id",
+                    "track_id",
+                    "price",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Order ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "description": "User ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "dj_id": {
+                        "description": "DJ ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "track_id": {
+                        "description": "Track ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "price": {
+                        "description": "Price of the order",
+                        "type": "number",
+                        "format": "float",
+                        "example": 19.99
+                    },
+                    "message": {
+                        "description": "Message for the order",
+                        "type": "string",
+                        "example": "Please play this track!"
+                    },
+                    "status": {
+                        "description": "Status of the order",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "accepted",
+                            "declined",
+                            "price_changed"
+                        ],
+                        "example": "pending"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-01T00:00:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-01T00:00:00Z"
+                    },
+                    "is_paid": {
+                        "description": "Is the order paid based on the transaction status",
+                        "type": "boolean",
+                        "example": "false"
+                    },
+                    "transactions": {
+                        "description": "Array of transaction details",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Transaction"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Transaction": {
+                "title": "Transaction",
+                "required": [
+                    "order_id",
+                    "amount",
+                    "status",
+                    "payment_url"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Transaction ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "order_id": {
+                        "description": "Order ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "amount": {
+                        "description": "Transaction amount",
+                        "type": "number",
+                        "format": "float",
+                        "example": 19.99
+                    },
+                    "payment_url": {
+                        "description": "Payment URL",
+                        "type": "string",
+                        "example": "https://payment.gateway.com/pay?order_id=1"
+                    },
+                    "status": {
+                        "description": "Transaction status",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "paid",
+                            "cancelled"
+                        ],
+                        "example": "pending"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-01T00:00:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-01T00:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "required": [
+                    "telegram_id",
+                    "name",
+                    "phone_number",
+                    "email"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "User ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "telegram_id": {
+                        "description": "Telegram ID of the user",
+                        "type": "string",
+                        "example": "782919745"
+                    },
+                    "name": {
+                        "description": "User's name",
+                        "type": "string",
+                        "example": "Ruslan"
+                    },
+                    "phone_number": {
+                        "description": "User's phone number",
+                        "type": "string",
+                        "example": "beilec"
+                    },
+                    "email": {
+                        "description": "User's email",
+                        "type": "string",
+                        "example": "beilec@telegram.com"
+                    },
+                    "email_verified_at": {
+                        "description": "Timestamp when the user's email was verified",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-14T21:00:21.000000Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-14T21:00:21.000000Z"
+                    },
+                    "last_login": {
+                        "description": "Timestamp of the last login",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null
+                    },
+                    "is_dj": {
+                        "description": "Indicates if the user is a DJ",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "dj": {
+                        "$ref": "#/components/schemas/DJ"
+                    }
+                },
+                "type": "object"
+            },
             "DJ": {
                 "properties": {
                     "id": {
@@ -230,10 +1285,6 @@
                         "type": "string",
                         "example": "New York"
                     },
-                    "base_prices": {
-                        "type": "string",
-                        "example": "100"
-                    },
                     "payment_details": {
                         "type": "string",
                         "example": "Bank details or any payment information"
@@ -248,6 +1299,60 @@
                     }
                 },
                 "type": "object"
+            },
+            "Track": {
+                "title": "Track",
+                "required": [
+                    "name",
+                    "artist",
+                    "duration"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Track ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Track name",
+                        "type": "string",
+                        "example": "Track Name"
+                    },
+                    "artist": {
+                        "description": "Artist name",
+                        "type": "string",
+                        "example": "Artist Name"
+                    },
+                    "duration": {
+                        "description": "Track duration",
+                        "type": "string",
+                        "example": "3:45"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-01T00:00:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-07-01T00:00:00Z"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "400": {
+                "description": "Bad Request"
+            },
+            "401": {
+                "description": "Unauthorized"
+            },
+            "404": {
+                "description": "Order not found"
             }
         },
         "securitySchemes": {
@@ -263,6 +1368,18 @@
         {
             "name": "DJ",
             "description": "DJ"
+        },
+        {
+            "name": "Order",
+            "description": "Order"
+        },
+        {
+            "name": "Transaction",
+            "description": "Transaction"
+        },
+        {
+            "name": "User",
+            "description": "User"
         }
     ],
     "security": [

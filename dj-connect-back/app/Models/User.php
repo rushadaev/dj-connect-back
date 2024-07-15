@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -34,6 +35,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $with = ['dj'];
+
+    protected $appends = [
+        'is_dj',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -47,8 +54,47 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the DJ profile associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function dj()
     {
         return $this->hasOne(DJ::class);
+    }
+
+    /**
+     * Get the user's DJ status.
+     *
+     * @return bool
+     */
+    public function getIsDjAttribute(): bool
+    {
+        return $this->dj !== null;
+    }
+
+    /**
+     * Attach a DJ role or information to the user.
+     *
+     * @param array $data Information or data to attach to the user as a DJ.
+     * @return Model 
+     */
+    public function attachDJ(array $djData)
+    {
+        if ($this->dj) {
+            throw new \Exception('User already has a DJ profile.');
+        }
+
+        $djData['user_id'] = $this->id;
+        return DJ::create($djData);
+    }
+    /**
+     * Get User orders
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

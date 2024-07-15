@@ -32,11 +32,12 @@ fresh:
 test:
 	docker-compose exec dj-connect-app php artisan test
 
-setup: 
-	docker-compose exec dj-connect-app cp .env.example .env
-	docker-compose exec dj-connect-app composer install
-	docker-compose exec dj-connect-app php artisan key:generate
-	docker-compose exec dj-connect-app php artisan migrate
+setup:
+	@docker-compose exec dj-connect-app sh -c '[ -f .env ] && echo ".env file already exists. Skipping .env file creation." || (cp .env.example .env && echo ".env file created from .env.example.")'
+	@docker-compose exec dj-connect-app composer install
+	@docker-compose exec dj-connect-app php artisan key:generate
+	@docker-compose exec dj-connect-app php artisan migrate
+	@echo "Setup completed."
 
 update-prod: stop build up setup
 

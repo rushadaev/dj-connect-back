@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
@@ -39,6 +40,10 @@ class TelegramAuth
             ]
         );
 
+        // Authenticate the user
+        Auth::login($user);
+
+        // You can set the user on the request if needed, though this is optional
         $request->user = $user;
 
         return $next($request);

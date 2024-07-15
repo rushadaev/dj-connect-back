@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('stage_name');
             $table->string('city');
             $table->string('instagram')->nullable();
-            $table->json('base_prices');
             $table->string('payment_details');
             $table->string('qr_code')->nullable();
             $table->string('profile_link')->nullable();
