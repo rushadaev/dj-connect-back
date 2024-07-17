@@ -18,9 +18,11 @@ class TelegramAuth
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $telegramBotToken = config('telegram.bot_token');
         $data = $this->parseInitData($initData);
         if (!$this->validateTelegramAuth($data)) {
             Log::debug('Validation failed', [
+                'key' => $telegramBotToken,
                 'init_data' => $initData,
                 'parsed_data' => $data,
                 'calculated_hash' => $this->calculateHash($data),
@@ -61,7 +63,8 @@ class TelegramAuth
             return "{$key}={$value}";
         })->implode("\n");
 
-        $secretKey = hash_hmac('sha256', '7375442494:AAGA-5fKImvUnwaW0-hY-eGYNtZiYd5pwNM', 'WebAppData', true);
+        $telegramBotToken = config('telegram.bot_token');
+        $secretKey = hash_hmac('sha256', $telegramBotToken, 'WebAppData', true);
         return hash_hmac('sha256', $checkString, $secretKey);
     }
 
