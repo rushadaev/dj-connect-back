@@ -19,6 +19,14 @@
             "description": "DJ Connect API Server"
         },
         {
+            "url": "http://localhost:8082",
+            "description": "DJ Connect Web Server"
+        },
+        {
+            "url": "https://dj-connect.xyz",
+            "description": "DJ Connect Web Server"
+        },
+        {
             "url": "https://dj-connect.xyz/api/v1"
         }
     ],
@@ -491,6 +499,49 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/dj/{dj_id}/qr-code": {
+            "get": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Generate QR code for DJ profile [web-server request]",
+                "description": "Generates a QR code for a DJ's profile. Make sure to make request to web server, not api server!",
+                "operationId": "generateQRCode",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "QR code generated successfully",
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "DJ not found"
                     }
                 }
             }

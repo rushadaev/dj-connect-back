@@ -15,7 +15,7 @@ namespace App\Http\Swagger;
  * )
  *
  * @OA\Server(
- *      url="http://localhost:8080/api/v1",
+ *      url="http://localhost:8082/api/v1",
  *      description="DJ Connect API Server"
  * )
  *

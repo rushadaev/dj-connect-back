@@ -8,6 +8,7 @@ use App\Models\Track;
 use App\Models\Order;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 /**
  * @OA\Info(
@@ -398,5 +399,59 @@ class DJController extends Controller
         ];
         
         return response()->json($statistics); 
+    }
+    /**
+     * @OA\Get(
+     *      path="/dj/{dj_id}/qr-code",
+     *      operationId="generateQRCode",
+     *      tags={"DJ"},
+     *      summary="Generate QR code for DJ profile [web-server request]",
+     *      description="Generates a QR code for a DJ's profile. Make sure to make request to web server, not api server!",
+     *      @OA\Parameter(
+     *          name="dj_id",
+     *          description="DJ ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="QR code generated successfully",
+     *          @OA\MediaType(
+     *              mediaType="image/png",
+     *              @OA\Schema(
+     *                  type="string",
+     *                  format="binary"
+     *              )
+     *          )
+     *      ),
+     *      @OA\Response(response=400, description="Bad Request"),
+     *      @OA\Response(response=401, description="Unauthorized"),
+     *      @OA\Response(response=404, description="DJ not found")
+     * ),
+     * @OA\Server(
+     *      url="http://localhost:8082",
+     *      description="DJ Connect Web Server"
+     * ),
+     * * @OA\Server(
+     *      url="https://dj-connect.xyz",
+     *      description="DJ Connect Web Server"
+     * )
+     */
+    public function generateQRCode($dj_id)
+    {
+        $dj = DJ::find($dj_id);
+
+        if (!$dj) {
+            return response()->json(['error' => 'DJ not found'], 404);
+        }
+        $webAppDirectUrl = config('webapp.direct_url');
+        $tgWebAppUrl = "{$webAppDirectUrl}?startapp={$dj_id}";
+
+        $qrCode = QrCode::format('png')->size(300)->generate($tgWebAppUrl);
+
+        return response($qrCode)->header('Content-Type', 'image/png');
     }
 }

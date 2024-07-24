@@ -7,11 +7,14 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    zip \
+    libzip-dev \
     unzip \
-    git
+    git \
+    libmagickwand-dev --no-install-recommends
 
-RUN docker-php-ext-install pdo pdo_pgsql gd
+RUN docker-php-ext-install pdo pdo_pgsql gd zip \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

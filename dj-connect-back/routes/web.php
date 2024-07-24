@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\TelegramController;
+use App\Http\Controllers\DJController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -7,3 +8,4 @@ Route::get('/', function () {
 });
 
 Route::post('/webhook/telegram', [TelegramController::class, 'handleWebhook']);
+Route::get('/dj/{dj_id}/qr-code', [DJController::class, 'generateQRCode']);
