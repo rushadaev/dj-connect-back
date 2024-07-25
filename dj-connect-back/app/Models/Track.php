@@ -24,18 +24,6 @@ use Illuminate\Database\Eloquent\Model;
  *         example="Track Name"
  *     ),
  *     @OA\Property(
- *         property="artist",
- *         type="string",
- *         description="Artist name",
- *         example="Artist Name"
- *     ),
- *     @OA\Property(
- *         property="duration",
- *         type="string",
- *         description="Track duration",
- *         example="3:45"
- *     ),
- *     @OA\Property(
  *         property="created_at",
  *         type="string",
  *         format="date-time",
@@ -56,7 +44,7 @@ class Track extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'artist', 'duration'
+        'name'
     ];
 
     /**

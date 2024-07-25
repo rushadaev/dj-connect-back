@@ -53,7 +53,11 @@ class DJController extends Controller
      *          @OA\JsonContent(
      *              @OA\Property(property="stage_name", type="string", example="DJ Example"),
      *              @OA\Property(property="city", type="string", example="New York"),
-     *              @OA\Property(property="payment_details", type="string", example="Bank details or any payment information")
+     *              @OA\Property(property="payment_details", type="string", example="Bank details or any payment information"),
+     *              @OA\Property(property="phone", type="string", example="+1234567890"),
+     *              @OA\Property(property="email", type="string", example="dj@example.com"),
+     *              @OA\Property(property="price", type="number", format="float", example=150.00),
+     *              @OA\Property(property="website", type="string", example="http://example.com")
      *          )
      *      ),
      *      @OA\Response(
@@ -69,12 +73,16 @@ class DJController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'stage_name' => 'required',
-            'city' => 'required',
-            'payment_details' => 'required',
+            'stage_name' => 'required|string',
+            'city' => 'required|string',
+            'payment_details' => 'required|string',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'price' => 'nullable|numeric',
+            'website' => 'nullable|string',
         ]);
 
-        $user = Auth::user(); 
+        $user = Auth::user();
 
         try {
             $dj = $user->attachDJ($validated);
@@ -142,7 +150,12 @@ class DJController extends Controller
      *          @OA\JsonContent(
      *              @OA\Property(property="stage_name", type="string", example="DJ Example"),
      *              @OA\Property(property="city", type="string", example="New York"),
-     *              @OA\Property(property="payment_details", type="string", example="Bank details or any payment information")
+     *              @OA\Property(property="payment_details", type="string", example="Bank details or any payment information"),
+     *              @OA\Property(property="price", type="number", format="float", example=150.00),
+     *              @OA\Property(property="sex", type="string", example="Gender"),
+     *              @OA\Property(property="phone", type="string", example="+1234567890"),
+     *              @OA\Property(property="email", type="string", format="email", example="dj@example.com"),
+     *              @OA\Property(property="website", type="string", example="http://example.com")
      *          )
      *      ),
      *      @OA\Response(
@@ -159,12 +172,17 @@ class DJController extends Controller
     public function updateProfile(Request $request, DJ $dj)
     {
         $validated = $request->validate([
-            'stage_name' => 'nullable',
-            'city' => 'nullable',
-            'payment_details' => 'nullable',
+            'stage_name' => 'nullable|string',
+            'city' => 'nullable|string',
+            'payment_details' => 'nullable|string',
+            'price' => 'nullable|numeric',
+            'sex' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'website' => 'nullable|string',
         ]);
 
-        $dj->update($validated);
+        $dj->update(array_filter($validated));
 
         return response()->json($dj);
     }
@@ -189,9 +207,7 @@ class DJController extends Controller
      *      @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(
-     *              @OA\Property(property="name", type="string", example="Track Name"),
-     *              @OA\Property(property="artist", type="string", example="Artist Name"),
-     *              @OA\Property(property="duration", type="string", example="3:45")
+     *              @OA\Property(property="name", type="string", example="Track Name")
      *          )
      *      ),
      *      @OA\Response(
@@ -208,8 +224,6 @@ class DJController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'artist' => 'required|string|max:255',
-            'duration' => 'required|string|max:10',
         ]);
 
         $dj = DJ::find($dj_id);
@@ -217,9 +231,9 @@ class DJController extends Controller
         if (!$dj) {
             return response()->json(['error' => 'DJ not found'], 404);
         }
-
         $track = Track::create($validated);
-        $dj->tracks()->attach($track->id);
+        //Adding default price from dj profile
+        $dj->tracks()->attach($track->id, ['price' => $dj->price]);
 
         return response()->json($track);
     }

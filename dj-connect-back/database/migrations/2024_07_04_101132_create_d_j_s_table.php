@@ -15,11 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('stage_name');
-            $table->string('city');
+            $table->string('city')->nullable();
             $table->string('instagram')->nullable();
-            $table->string('payment_details');
-            $table->string('qr_code')->nullable();
-            $table->string('profile_link')->nullable();
+            $table->decimal('price', 8, 2)->nullable()->default(0);
+            $table->string('sex')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('website')->nullable();
+            $table->string('payment_details')->nullable();
             $table->timestamps();
         });
     }

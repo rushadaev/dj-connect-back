@@ -27,6 +27,11 @@ class DJ extends Model
         'stage_name',
         'city',
         'payment_details',
+        'price',
+        'sex',
+        'phone',
+        'email',
+        'website'
     ];
 
     /**

@@ -44,6 +44,19 @@ paths:
                 payment_details:
                   type: string
                   example: 'Bank details or any payment information'
+                phone:
+                  type: string
+                  example: '+1234567890'
+                email:
+                  type: string
+                  example: dj@example.com
+                price:
+                  type: number
+                  format: float
+                  example: 150
+                website:
+                  type: string
+                  example: 'http://example.com'
               type: object
       responses:
         200:
@@ -123,6 +136,23 @@ paths:
                 payment_details:
                   type: string
                   example: 'Bank details or any payment information'
+                price:
+                  type: number
+                  format: float
+                  example: 150
+                sex:
+                  type: string
+                  example: Gender
+                phone:
+                  type: string
+                  example: '+1234567890'
+                email:
+                  type: string
+                  format: email
+                  example: dj@example.com
+                website:
+                  type: string
+                  example: 'http://example.com'
               type: object
       responses:
         200:
@@ -166,12 +196,6 @@ paths:
                 name:
                   type: string
                   example: 'Track Name'
-                artist:
-                  type: string
-                  example: 'Artist Name'
-                duration:
-                  type: string
-                  example: '3:45'
               type: object
       responses:
         200:
@@ -945,14 +969,6 @@ components:
           description: 'Track name'
           type: string
           example: 'Track Name'
-        artist:
-          description: 'Artist name'
-          type: string
-          example: 'Artist Name'
-        duration:
-          description: 'Track duration'
-          type: string
-          example: '3:45'
         created_at:
           description: 'Creation timestamp'
           type: string

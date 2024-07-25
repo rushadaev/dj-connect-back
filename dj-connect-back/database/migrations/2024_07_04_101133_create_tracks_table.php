@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('tracks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('artist');
-            $table->time('duration')->nullable();
             $table->timestamps();
         });
     }
