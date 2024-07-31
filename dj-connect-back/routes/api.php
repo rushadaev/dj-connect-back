@@ -17,6 +17,8 @@ Route::middleware(['telegram.auth'])->group(function () {
     Route::post('/dj/register', [DJController::class, 'register']);
     Route::get('/dj/profile/{dj}', [DJController::class, 'profile']);
     Route::put('/dj/profile/{dj}', [DJController::class, 'updateProfile']);
+
+    Route::delete('/dj/clear', [DJController::class, 'clearDJs']);
     
     Route::post('/dj/{dj_id}/track', [DJController::class, 'addTrack']);
     Route::get('/dj/{dj_id}/tracks', [DJController::class, 'getTracks']);

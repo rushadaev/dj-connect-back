@@ -56,6 +56,7 @@ class DJController extends Controller
      *              @OA\Property(property="payment_details", type="string", example="Bank details or any payment information"),
      *              @OA\Property(property="phone", type="string", example="+1234567890"),
      *              @OA\Property(property="email", type="string", example="dj@example.com"),
+     *              @OA\Property(property="sex", type="string", example="Gender"),
      *              @OA\Property(property="price", type="number", format="float", example=150.00),
      *              @OA\Property(property="website", type="string", example="http://example.com")
      *          )
@@ -77,6 +78,7 @@ class DJController extends Controller
             'city' => 'required|string',
             'payment_details' => 'required|string',
             'phone' => 'nullable|string',
+            'sex' => 'nullable|string',
             'email' => 'nullable|email',
             'price' => 'nullable|numeric',
             'website' => 'nullable|string',
@@ -467,5 +469,38 @@ class DJController extends Controller
         $qrCode = QrCode::format('png')->size(300)->generate($tgWebAppUrl);
 
         return response($qrCode)->header('Content-Type', 'image/png');
+    }
+    /**
+     * @OA\Delete(
+     *     path="/dj/clear",
+     *     summary="Clear all DJs from the database",
+     *     description="Delete all DJ records from the database.",
+     *     tags={"DJ"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="All DJs have been cleared.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="Failed to clear DJs.")
+     *         )
+     *     )
+     * )
+     */
+    public function clearDJs()
+    {
+        try {
+            DJ::truncate();
+            return response()->json(['message' => 'All DJs have been cleared.'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to clear DJs.'], 500);
+        }
     }
 }
