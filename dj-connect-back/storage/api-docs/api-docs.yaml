@@ -50,6 +50,9 @@ paths:
                 email:
                   type: string
                   example: dj@example.com
+                sex:
+                  type: string
+                  example: Gender
                 price:
                   type: number
                   format: float
