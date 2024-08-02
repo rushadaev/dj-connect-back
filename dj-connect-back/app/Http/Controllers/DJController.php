@@ -239,6 +239,124 @@ class DJController extends Controller
 
         return response()->json($track);
     }
+    
+    /**
+     * @OA\Put(
+     *      path="/dj/{dj_id}/track/{track_id}",
+     *      operationId="updateTrack",
+     *      tags={"DJ"},
+     *      summary="Update a track",
+     *      description="Allows a DJ to update an existing track",
+     *      security={{"telegramAuth":{}}},
+     *      @OA\Parameter(
+     *          name="dj_id",
+     *          description="DJ ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Parameter(
+     *          name="track_id",
+     *          description="Track ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              @OA\Property(property="name", type="string", example="Updated Track Name")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *          @OA\JsonContent(ref="#/components/schemas/Track")
+     *      ),
+     *      @OA\Response(response=400, description="Bad Request"),
+     *      @OA\Response(response=401, description="Unauthorized"),
+     *      @OA\Response(response=404, description="DJ or Track not found")
+     * )
+     */
+    public function updateTrack(Request $request, $dj_id, $track_id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $dj = DJ::find($dj_id);
+        if (!$dj) {
+            return response()->json(['error' => 'DJ not found'], 404);
+        }
+
+        $track = Track::find($track_id);
+        if (!$track || !$dj->tracks->contains($track_id)) {
+            return response()->json(['error' => 'Track not found'], 404);
+        }
+
+        $track->update($validated);
+
+        return response()->json($track);
+    }
+
+    /**
+     * @OA\Delete(
+     *      path="/dj/{dj_id}/track/{track_id}",
+     *      operationId="deleteTrack",
+     *      tags={"DJ"},
+     *      summary="Delete a track",
+     *      description="Allows a DJ to delete an existing track",
+     *      security={{"telegramAuth":{}}},
+     *      @OA\Parameter(
+     *          name="dj_id",
+     *          description="DJ ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Parameter(
+     *          name="track_id",
+     *          description="Track ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Track deleted successfully")
+     *          )
+     *      ),
+     *      @OA\Response(response=404, description="DJ or Track not found"),
+     *      @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function deleteTrack($dj_id, $track_id)
+    {
+        $dj = DJ::find($dj_id);
+        if (!$dj) {
+            return response()->json(['error' => 'DJ not found'], 404);
+        }
+
+        $track = Track::find($track_id);
+        if (!$track || !$dj->tracks->contains($track_id)) {
+            return response()->json(['error' => 'Track not found'], 404);
+        }
+
+        $dj->tracks()->detach($track_id);
+        $track->delete();
+
+        return response()->json(['message' => 'Track deleted successfully']);
+    }
 
         /**
      * @OA\Get(

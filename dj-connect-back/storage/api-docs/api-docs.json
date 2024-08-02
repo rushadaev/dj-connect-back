@@ -319,6 +319,135 @@
                 ]
             }
         },
+        "/dj/{dj_id}/track/{track_id}": {
+            "put": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Update a track",
+                "description": "Allows a DJ to update an existing track",
+                "operationId": "updateTrack",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "track_id",
+                        "in": "path",
+                        "description": "Track ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Updated Track Name"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Track"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "DJ or Track not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "DJ"
+                ],
+                "summary": "Delete a track",
+                "description": "Allows a DJ to delete an existing track",
+                "operationId": "deleteTrack",
+                "parameters": [
+                    {
+                        "name": "dj_id",
+                        "in": "path",
+                        "description": "DJ ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "track_id",
+                        "in": "path",
+                        "description": "Track ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Track deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "DJ or Track not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
         "/dj/{dj_id}/tracks": {
             "get": {
                 "tags": [
