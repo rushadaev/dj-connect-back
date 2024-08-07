@@ -16,6 +16,7 @@ services:
   webserver:
     image: nginx:alpine
     container_name: nginx-dj-connect-app
+    platform: linux/amd64
     restart: unless-stopped
     tty: true
     ports:

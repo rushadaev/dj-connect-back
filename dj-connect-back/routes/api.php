@@ -39,6 +39,7 @@ Route::middleware(['telegram.auth'])->group(function () {
     Route::patch('/transactions/{transaction_id}/mark-paid', [TransactionController::class, 'markTransactionPaid']);
     Route::patch('/transactions/{transaction_id}/cancel', [TransactionController::class, 'cancelTransaction']);
 
+    Route::get('/payouts', [PayoutController::class, 'getPayouts']);
     Route::post('/payout', [PayoutController::class, 'create']);
     Route::put('/payout/status/{payout}', [PayoutController::class, 'updateStatus']);
 
