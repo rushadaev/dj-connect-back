@@ -67,7 +67,7 @@ class TelegramController extends Controller
             $keyboard = [];
             foreach ($tracks as $track) {
                 $priceText = $track->price ? ' | ' . $track->price : '';
-                $keyboard[] = [['text' => "{$track->artist} – {$track->name}{$priceText}", 'callback_data' => 'choose_track_' . $track->id]];
+                $keyboard[] = [['text' => "{$track->name}{$priceText}", 'callback_data' => 'choose_track_' . $track->id]];
             }
         
             $inlineKeyboard = new \TelegramBot\Api\Types\Inline\InlineKeyboardMarkup($keyboard);
