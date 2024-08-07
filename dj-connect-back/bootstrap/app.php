@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['telegram.auth' => TelegramAuth::class]);
         $middleware->validateCsrfTokens(except: [
             '/webhook/telegram',
+            '/payment/return/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
