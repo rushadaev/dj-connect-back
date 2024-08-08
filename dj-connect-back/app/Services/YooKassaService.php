@@ -3,8 +3,14 @@
 namespace App\Services;
 
 use YooKassa\Client;
+use YooKassa\Model\Notification\NotificationSucceeded;
+use YooKassa\Model\Notification\NotificationWaitingForCapture;
+use YooKassa\Model\Notification\NotificationCanceled;
+use YooKassa\Model\Notification\NotificationRefundSucceeded;
+use YooKassa\Model\Notification\NotificationEventType;
 use App\Modles\Order;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 class YooKassaService
 {
     protected $client;
@@ -77,5 +83,36 @@ class YooKassaService
     public function retrievePayment($paymentId)
     {
         return $this->client->getPaymentInfo($paymentId);
+    }
+
+    public function handleWebhook($requestBody)
+    {
+        try {
+            switch ($requestBody['event']) {
+                case NotificationEventType::PAYMENT_SUCCEEDED:
+                    $notification = new NotificationSucceeded($requestBody);
+                    break;
+                case NotificationEventType::PAYMENT_WAITING_FOR_CAPTURE:
+                    $notification = new NotificationWaitingForCapture($requestBody);
+                    break;
+                case NotificationEventType::PAYMENT_CANCELED:
+                    $notification = new NotificationCanceled($requestBody);
+                    break;
+                case NotificationEventType::REFUND_SUCCEEDED:
+                    $notification = new NotificationRefundSucceeded($requestBody);
+                    break;
+                default:
+                    throw new \Exception('Unknown event type');
+            }
+
+            // Get the payment object
+            $payment = $notification->getObject();
+
+            return $payment;
+        } catch (\Exception $e) {
+            // Handle errors if data is invalid
+            Log::error('Webhook processing error', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 }

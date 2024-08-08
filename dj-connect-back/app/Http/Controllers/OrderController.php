@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Traits\UsesTelegram;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use Illuminate\Support\Facades\Log;
+use App\Traits\UsesYooKassa;
 
 /**
  * @OA\Schema(
@@ -94,6 +95,13 @@ use Illuminate\Support\Facades\Log;
 class OrderController extends Controller
 {
     use UsesTelegram;
+    use UsesYooKassa;
+
+
+    public function __construct()
+    {
+        $this->initializeYooKassa();
+    }
     /**
      * @OA\Post(
      *      path="/orders",
@@ -146,14 +154,8 @@ class OrderController extends Controller
             return response()->json(['error' => 'DJ or Track not found'], 404);
         }
     
-        // Retrieve the price from the pivot table
-        $pivotData = $dj->tracks()->where('track_id', $validated['track_id'])->first();
     
-        if (!$pivotData || !isset($pivotData->pivot->price)) {
-            return response()->json(['error' => 'Price not found for the given DJ and Track'], 404);
-        }
-    
-        $price = $pivotData->pivot->price;
+        $price = $dj->price;
     
         $order = Order::create([
             'user_id' => $user_id,
@@ -265,9 +267,10 @@ class OrderController extends Controller
         $order->message = $validated['message'] ?? 'Order accepted';
         $order->save();
     
+        $yookassa = $this->yooKassaService;
         try {
             // Always create a new transaction, if there is pending transaction, it will be cancelled
-            $transaction = $order->createTransaction($order->price);
+            $transaction = $order->createTransaction($order->price, $yookassa);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }

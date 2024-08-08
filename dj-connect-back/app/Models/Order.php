@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
+    use CrudTrait;
     use HasFactory;
 
     const STATUS_PENDING = 'pending';
@@ -52,26 +55,36 @@ class Order extends Model
      * @return Transaction
      * @throws \Exception
      */
-    public function createTransaction($amount)
-{
-    // Check if there's already a pending transaction and cancel it
-    $existingTransaction = $this->transactions()->where('status', Transaction::STATUS_PENDING)->first();
+    public function createTransaction($amount, $yookassa)
+    {
+        // Check if there's already a pending transaction and cancel it
+        $existingTransaction = $this->transactions()->where('status', Transaction::STATUS_PENDING)->first();
 
-    if ($existingTransaction) {
-        $existingTransaction->cancel();
+        if ($existingTransaction) {
+            $existingTransaction->cancel();
+        }
+
+        $amount = $amount;
+        $orderId = $this->id;
+        $description = 'Test payment for order';
+        try {
+            $url = $yookassa->createPaymentLink($amount, $orderId, $description);
+        } catch (\Exception $e) {
+            $url = $e;
+            Log::error($e->getMessage());
+        }
+
+        // Generate payment URL (dummy implementation, replace with actual payment gateway API call)
+        $paymentUrl = $url;
+
+        // Create a new transaction
+        return Transaction::create([
+            'order_id' => $this->id,
+            'amount' => $amount,
+            'payment_url' => $paymentUrl,
+            'status' => Transaction::STATUS_PENDING,
+        ]);
     }
-
-    // Generate payment URL (dummy implementation, replace with actual payment gateway API call)
-    $paymentUrl = 'https://payment.gateway.com/pay?order_id=' . $this->id;
-
-    // Create a new transaction
-    return Transaction::create([
-        'order_id' => $this->id,
-        'amount' => $amount,
-        'payment_url' => $paymentUrl,
-        'status' => Transaction::STATUS_PENDING,
-    ]);
-}
 
     /**
      * Check if the order is marked as paid by paid transaction.

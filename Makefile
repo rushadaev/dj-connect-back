@@ -17,6 +17,9 @@ restart:
 shell:
 	docker-compose exec dj-connect-app bash
 
+shell-root:
+	docker-compose exec --user root dj-connect-app bash
+
 composer:
 	docker-compose exec dj-connect-app composer $(filter-out $@,$(MAKECMDGOALS))
 

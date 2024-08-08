@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Traits\UsesYooKassa;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Models\Order;
+use App\Models\Transaction;
 
 class PayoutController extends Controller
 {
@@ -69,18 +71,18 @@ class PayoutController extends Controller
         // Retrieve payment details from YooKassa
         $payment = $this->yooKassaService->retrievePayment($paymentId);
     
+        $orderId = $payment->getMetadata()->order_id ?? null;
+
         Log::info('Payment details', $payment->jsonSerialize());
         if ($payment->status === 'succeeded') {
-            // Update the order status in the database
-            // $order = Order::find($orderId);
-            // if ($order) {
-            //     $order->status = 'paid';
-            //     $order->save();
-            // }
-    
-            // Additional success logic (e.g., sending confirmation emails)
-            // ...
-    
+            $order = Order::find($orderId);
+            
+            // Retrieve the last transaction and mark it as paid
+            $lastTransaction = $order->transactions->last();
+            if ($lastTransaction) {
+                $lastTransaction->status = Transaction::STATUS_PAID;
+                $lastTransaction->save();
+            }
             return response()->json(['message' => 'Payment successful']);
         } else {
             // Handle payment failure
