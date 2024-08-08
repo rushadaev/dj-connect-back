@@ -47,10 +47,6 @@ class PayoutController extends Controller
         $amount = '123.45';
         $orderId = '69';
         $description = 'Test payment for order';
-
-       
-       
-
         try {
             $url = $this->yooKassaService->createPaymentLink($amount, $orderId, $description);
         } catch (\Exception $e) {
