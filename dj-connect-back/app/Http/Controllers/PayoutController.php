@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Traits\UsesYooKassa;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Models\DJ;
 use App\Models\Order;
 use App\Models\Transaction;
 /**
@@ -249,6 +250,53 @@ class PayoutController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/payouts/{dj_id}",
+     *     summary="Get all payouts for a specific DJ",
+     *     description="Fetches all payouts associated with a specific DJ from the database.",
+     *     tags={"Payouts"},
+     *     @OA\Parameter(
+     *         name="dj_id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="The ID of the DJ"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of payouts for the DJ",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Payout")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="DJ not found",
+     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *     )
+     * )
+     */
+    public function getAllPayouts($dj_id)
+    {
+        $dj = DJ::find($dj_id);
+    
+        if (!$dj) {
+            return response()->json(['error' => 'DJ not found'], 404);
+        }
+        // Fetch all payouts from the database
+        $payouts = Payout::where('dj_id', $dj_id)->get();
+    
+        // Return the payouts as a JSON response
+        return response()->json($payouts);
     }
 
     public function updateStatus(Request $request, Payout $payout)

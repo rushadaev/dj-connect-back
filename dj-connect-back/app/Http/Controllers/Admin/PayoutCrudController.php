@@ -39,12 +39,15 @@ class PayoutCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        CRUD::setFromDb(); // set columns from db columns.
+        CRUD::column('dj_id')->type('number')->label('DJ ID');
+        CRUD::column('amount')->type('number')->label('Amount');
+        CRUD::column('status')->type('enum')->label('Status');
+        CRUD::column('payout_type')->type('enum')->label('Payout Type');
+        CRUD::column('payout_details')->type('textarea')->label('Payout Details');
+        CRUD::column('yookassa_payout_id')->type('text')->label('YooKassa Payout ID');
+        CRUD::column('processed_at')->type('datetime')->label('Processed At');
 
-        /**
-         * Columns can be defined using the fluent syntax:
-         * - CRUD::column('price')->type('number');
-         */
+        // You can add more columns here if needed
     }
 
     /**
@@ -56,12 +59,20 @@ class PayoutCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(PayoutRequest::class);
-        CRUD::setFromDb(); // set fields from db columns.
 
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
+        CRUD::field('dj_id')->type('number')->label('DJ ID');
+        CRUD::field('amount')->type('number')->label('Amount');
+        CRUD::field('status')->type('enum')->label('Status');
+        CRUD::field('payout_type')->type('enum')->label('Payout Type')->options([
+            'bank_card' => 'Bank Card',
+            'sbp' => 'SBP',
+            'yoo_money' => 'YooMoney',
+        ]);
+        CRUD::field('payout_details')->type('textarea')->label('Payout Details');
+        CRUD::field('yookassa_payout_id')->type('text')->label('YooKassa Payout ID');
+        CRUD::field('processed_at')->type('datetime')->label('Processed At');
+
+        // Add more fields as needed
     }
 
     /**

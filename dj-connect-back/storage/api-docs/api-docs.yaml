@@ -854,6 +854,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  '/payouts/{dj_id}':
+    get:
+      tags:
+        - Payouts
+      summary: 'Get all payouts for a specific DJ'
+      description: 'Fetches all payouts associated with a specific DJ from the database.'
+      operationId: c57c14bfe9164b2b793fc93caa528eb1
+      parameters:
+        -
+          name: dj_id
+          in: path
+          description: 'The ID of the DJ'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'List of payouts for the DJ'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payout'
+        404:
+          description: 'DJ not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   '/transactions/{transaction_id}/mark-paid':
     patch:
       tags:

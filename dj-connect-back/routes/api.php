@@ -47,6 +47,8 @@ Route::middleware(['telegram.auth'])->group(function () {
 
     Route::get('/sbp-participants', [PayoutController::class, 'getSbpParticipants']);
 
+    Route::get('/payouts/{dj_id}', [PayoutController::class, 'getAllPayouts']);
+
     Route::get('/text', function (Request $request) {
         return $request->user;
         return response()->json(['message' => 'This is an test route']);
