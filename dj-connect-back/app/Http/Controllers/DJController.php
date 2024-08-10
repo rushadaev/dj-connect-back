@@ -527,9 +527,10 @@ class DJController extends Controller
             'most_popular_tracks' => $paidOrders->groupBy('track_id')->map(function ($group) {
                 return [
                     'track_id' => $group->first()->track_id,
+                    'track_name' => Track::find($group->first()->track_id)->name,
                     'count' => $group->count(),
                 ];
-            })->sortByDesc('count')->first(),
+            })->sortByDesc('count')->values(),
         ];
         
         return response()->json($statistics); 

@@ -55,23 +55,34 @@ class YooKassaService
         return Order::where('user_id', $id)->get();
     }
 
-    public function createPayout($amount, $accountId, $description)
+    public function createPayout(array $amount, array $payoutDestination, string $description)
     {
-        $payout = $this->client->createPayout(
-            [
-                'amount' => [
-                    'value' => $amount,
-                    'currency' => 'RUB',
-                ],
-                'payout_destination_data' => [
-                    'type' => 'yoo_money',
-                    'account_number' => $accountId,
-                ],
-                'description' => $description,
-            ]
-        );
+        // Assume $this->client is your initialized YooKassa client
+        $response = $this->client->createPayout([
+            'amount' => $amount,
+            'payout_destination_data' => $payoutDestination,
+            'description' => $description,
+            'metadata' => [
+                'order_id' => $description,
+            ],
+        ]);
 
-        return $payout;
+        return $response;
+    }
+
+    public function getSbpBanks()
+    {
+        // Mocked response data
+        return (object) [
+            'items' => [
+                (object) [
+                    'id' => '100000000111',
+                    'name' => 'Сбербанк',
+                    'bic' => '044525225',
+                ],
+            ],
+        ];
+        return $this->client->getSbpBanks();
     }
 
     public function listPayouts()

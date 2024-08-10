@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('dj_id')->constrained('djs')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
+            $table->string('yookassa_payout_id')->nullable();
+            $table->enum('payout_type', ['bank_card', 'sbp', 'yoo_money']);
+            $table->json('payout_details')->nullable();
             $table->enum('status', ['pending', 'processed']);
             $table->timestamps();
             $table->timestamp('processed_at')->nullable();

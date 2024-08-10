@@ -39,9 +39,13 @@ Route::middleware(['telegram.auth'])->group(function () {
     Route::patch('/transactions/{transaction_id}/mark-paid', [TransactionController::class, 'markTransactionPaid']);
     Route::patch('/transactions/{transaction_id}/cancel', [TransactionController::class, 'cancelTransaction']);
 
-    Route::get('/payouts', [PayoutController::class, 'getPayouts']);
-    Route::post('/payout', [PayoutController::class, 'create']);
-    Route::put('/payout/status/{payout}', [PayoutController::class, 'updateStatus']);
+    // Route for DJs to create a payout request
+    Route::post('/payouts', [PayoutController::class, 'createPayoutRequest']);
+
+    // Route for admin to approve and send the payout
+    Route::post('/payouts/{payoutId}/approve', [PayoutController::class, 'approveAndSendPayout']);
+
+    Route::get('/sbp-participants', [PayoutController::class, 'getSbpParticipants']);
 
     Route::get('/text', function (Request $request) {
         return $request->user;

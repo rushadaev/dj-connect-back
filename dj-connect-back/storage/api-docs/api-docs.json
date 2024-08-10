@@ -1096,6 +1096,189 @@
                 ]
             }
         },
+        "/payouts": {
+            "post": {
+                "tags": [
+                    "Payouts"
+                ],
+                "summary": "Create a payout request",
+                "description": "Allows a DJ to create a payout request in the database.",
+                "operationId": "e352656e326457a33d4d9fbb4dda0c9e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dj_id": {
+                                        "description": "ID of the DJ",
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "description": "Amount to be paid out",
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "payout_type": {
+                                        "description": "Type of payout",
+                                        "type": "string",
+                                        "enum": [
+                                            "bank_card",
+                                            "sbp",
+                                            "yoo_money"
+                                        ]
+                                    },
+                                    "payout_details": {
+                                        "oneOf": [
+                                            {
+                                                "properties": {
+                                                    "card_number": {
+                                                        "description": "Bank card number, required if payout_type is bank_card",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            {
+                                                "properties": {
+                                                    "bank_id": {
+                                                        "description": "Bank ID, required if payout_type is sbp",
+                                                        "type": "string"
+                                                    },
+                                                    "phone": {
+                                                        "description": "Phone number, required if payout_type is sbp",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            {
+                                                "properties": {
+                                                    "account_number": {
+                                                        "description": "YooMoney account number, required if payout_type is yoo_money",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payout request created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Payout"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payouts/{payoutId}/approve": {
+            "post": {
+                "tags": [
+                    "Payouts"
+                ],
+                "summary": "Approve and send a payout",
+                "description": "Allows an admin to approve a payout request and send it via YooKassa.",
+                "operationId": "03afeb0dcc6044a2466635e836515b5f",
+                "parameters": [
+                    {
+                        "name": "payoutId",
+                        "in": "path",
+                        "description": "ID of the payout to be approved",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payout processed successfully"
+                    },
+                    "400": {
+                        "description": "Invalid payout ID or payout already processed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
+        },
+        "/sbp-participants": {
+            "get": {
+                "tags": [
+                    "Payouts"
+                ],
+                "summary": "Get list of SBP participants",
+                "description": "Retrieves a list of banks and payment services connected to the SBP.",
+                "operationId": "fc8dbeee2940ec870b07e5067b3f670f",
+                "responses": {
+                    "200": {
+                        "description": "List of SBP participants retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "bank_id": {
+                                                "description": "Identifier of the SBP participant",
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "description": "Name of the SBP participant",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error retrieving SBP participants",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/transactions/{transaction_id}/mark-paid": {
             "patch": {
                 "tags": [
@@ -1402,6 +1585,55 @@
                 },
                 "type": "object"
             },
+            "Payout": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "dj_id": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "processed"
+                        ]
+                    },
+                    "payout_type": {
+                        "type": "string",
+                        "enum": [
+                            "bank_card",
+                            "sbp",
+                            "yoo_money"
+                        ]
+                    },
+                    "payout_details": {
+                        "type": "string"
+                    },
+                    "yookassa_payout_id": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "processed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "Transaction": {
                 "title": "Transaction",
                 "required": [
@@ -1559,6 +1791,17 @@
                 },
                 "type": "object"
             },
+            "Error": {
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
             "Track": {
                 "title": "Track",
                 "required": [
@@ -1621,6 +1864,10 @@
         {
             "name": "Order",
             "description": "Order"
+        },
+        {
+            "name": "Payouts",
+            "description": "Payouts"
         },
         {
             "name": "Transaction",
