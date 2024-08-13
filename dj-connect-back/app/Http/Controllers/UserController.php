@@ -208,4 +208,77 @@ class UserController extends Controller
 
         return response()->json($user);
     }
+
+    /**
+     * @OA\Post(
+     *      path="/admin/set",
+     *      operationId="setAdmin",
+     *      tags={"User Management"},
+     *      summary="Set a user as admin",
+     *      description="Assign the 'admin' role to a user and update their email and password.",
+     *      security={{"telegramAuth":{}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"user_id", "email", "password"},
+     *              @OA\Property(property="user_id", type="integer", example=1, description="ID of the user to be updated"),
+     *              @OA\Property(property="email", type="string", format="email", example="djgod@t.me", description="New email for the user"),
+     *              @OA\Property(property="password", type="string", format="password", example="12345678", description="New password for the user")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="User updated and set as admin",
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="id", type="integer", example=1),
+     *              @OA\Property(property="name", type="string", example="John Doe"),
+     *              @OA\Property(property="email", type="string", example="djgod@t.me"),
+     *              @OA\Property(property="roles", type="array",
+     *                  @OA\Items(
+     *                      type="string",
+     *                      example="admin"
+     *                  )
+     *              ),
+     *              @OA\Property(property="created_at", type="string", format="date-time", example="2024-08-12T00:00:00.000000Z"),
+     *              @OA\Property(property="updated_at", type="string", format="date-time", example="2024-08-12T00:00:00.000000Z")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthorized"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="User not found"
+     *      )
+     * )
+     */
+    public function setAdmin(Request $request)
+    {
+        // Validate the request data
+        $validatedData = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'email' => 'required|email',
+            'password' => 'required|min:8',
+        ]);
+    
+        // Find the user by ID
+        $user = User::find($validatedData['user_id']);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+    
+        // Assign the 'admin' role to the user
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $user->assignRole($adminRole);
+    
+        // Update the user's email and password
+        $user->email = $validatedData['email'];
+        $user->password = Hash::make($validatedData['password']);
+        $user->save();
+    
+        // Return the updated user information
+        return response()->json(['message' => 'User updated and set as admin', 'user' => $user]);
+    }
 }

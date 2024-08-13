@@ -484,6 +484,9 @@ class DJController extends Controller
      *             type="object",
      *             @OA\Property(property="total_orders", type="integer", example=5),
      *             @OA\Property(property="total_income", type="number", format="float", example=150.75),
+     *             @OA\Property(property="income_current_month", type="number", format="float", example=50.25),
+     *             @OA\Property(property="total_accepted_orders", type="integer", example=10),
+     *             @OA\Property(property="total_rejected_orders", type="integer", example=2),
      *             @OA\Property(property="average_price", type="number", format="float", example=30.15),
      *             @OA\Property(property="min_price", type="number", format="float", example=20.00),
      *             @OA\Property(property="max_price", type="number", format="float", example=50.00),
@@ -517,10 +520,33 @@ class DJController extends Controller
             })
             ->get();
 
+        // Fetch current month paid orders
+        $currentMonthOrders = Order::where('dj_id', $dj_id)
+            ->whereHas('transactions', function ($query) {
+                $query->where('status', Transaction::STATUS_PAID);
+            })
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->get();
+
+        // Fetch accepted and rejected orders
+        $acceptedOrdersCount = Order::where('dj_id', $dj_id)
+            ->whereHas('transactions', function ($query) {
+                $query->where('status', Transaction::STATUS_PAID);
+            })
+            ->count();
+
+        $rejectedOrdersCount = Order::where('dj_id', $dj_id)
+            ->where('status', Order::STATUS_DECLINED)
+            ->count();
+
         // Calculate statistics
         $statistics = [
             'total_orders' => $paidOrders->count(),
             'total_income' => round($paidOrders->sum('price'), 2),
+            'income_current_month' => round($currentMonthOrders->sum('price'), 2),
+            'total_accepted_orders' => $acceptedOrdersCount,
+            'total_rejected_orders' => $rejectedOrdersCount,
             'average_price' => round($paidOrders->avg('price'), 2),
             'min_price' => round($paidOrders->min('price'), 2),
             'max_price' => round($paidOrders->max('price'), 2),

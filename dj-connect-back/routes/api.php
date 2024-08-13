@@ -13,6 +13,7 @@ Route::middleware(['telegram.auth'])->group(function () {
     Route::post('/login', [UserController::class, 'login']);
     Route::get('/profile/me', [UserController::class, 'getMe']);
     Route::get('/profile/{telegram_id}', [UserController::class, 'profile']);
+    Route::post('/admin/set', [UserController::class, 'setAdmin']);
     
     Route::post('/dj/register', [DJController::class, 'register']);
     Route::get('/dj/profile/{dj}', [DJController::class, 'profile']);

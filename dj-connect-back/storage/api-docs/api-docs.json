@@ -614,6 +614,19 @@
                                             "format": "float",
                                             "example": 150.75
                                         },
+                                        "income_current_month": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 50.25
+                                        },
+                                        "total_accepted_orders": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "total_rejected_orders": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
                                         "average_price": {
                                             "type": "number",
                                             "format": "float",
@@ -1558,6 +1571,104 @@
                     }
                 ]
             }
+        },
+        "/admin/set": {
+            "post": {
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Set a user as admin",
+                "description": "Assign the 'admin' role to a user and update their email and password.",
+                "operationId": "setAdmin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "description": "ID of the user to be updated",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "email": {
+                                        "description": "New email for the user",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "djgod@t.me"
+                                    },
+                                    "password": {
+                                        "description": "New password for the user",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated and set as admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "John Doe"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "djgod@t.me"
+                                        },
+                                        "roles": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "admin"
+                                            }
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-08-12T00:00:00.000000Z"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-08-12T00:00:00.000000Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "telegramAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -1932,6 +2043,10 @@
         {
             "name": "User",
             "description": "User"
+        },
+        {
+            "name": "User Management",
+            "description": "User Management"
         }
     ],
     "security": [
