@@ -14,7 +14,8 @@ class TelegramAuth
     {
         $initData = $request->header('Telegram-Init-Data');
 
-        $env = $request->header('Env-Mode');
+        // $env = $request->header('Env-Mode');
+        $env = 'dev';
         if (!$initData) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }

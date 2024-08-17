@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use App\Traits\UsesYooKassa;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use App\Models\DJ;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Traits\UsesTelegram;
 /**
  * @OA\Schema(
  *     schema="Payout",
@@ -28,6 +30,7 @@ use App\Models\Transaction;
 class PayoutController extends Controller
 {
     use UsesYooKassa;
+    use UsesTelegram;
 
     public function __construct()
     {
@@ -255,8 +258,8 @@ class PayoutController extends Controller
     /**
      * @OA\Get(
      *     path="/payouts/{dj_id}",
-     *     summary="Get all payouts for a specific DJ",
-     *     description="Fetches all payouts associated with a specific DJ from the database.",
+     *     summary="Get all payouts and available balance for a specific DJ",
+     *     description="Fetches all payouts and the available balance associated with a specific DJ from the database.",
      *     tags={"Payouts"},
      *     @OA\Parameter(
      *         name="dj_id",
@@ -267,10 +270,20 @@ class PayoutController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="List of payouts for the DJ",
+     *         description="Payouts and available balance for the DJ",
      *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Payout")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="available_balance",
+     *                 type="number",
+     *                 format="float",
+     *                 description="Sum of paid orders"
+     *             ),
+     *             @OA\Property(
+     *                 property="payouts",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Payout")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -288,15 +301,34 @@ class PayoutController extends Controller
     public function getAllPayouts($dj_id)
     {
         $dj = DJ::find($dj_id);
-    
+
         if (!$dj) {
             return response()->json(['error' => 'DJ not found'], 404);
         }
+
+        // Calculate the total sum of paid orders
+        $total_paid_orders = Order::where('dj_id', $dj_id)
+                                ->whereHas('transactions', function ($query) {
+                                    $query->where('status', Transaction::STATUS_PAID);
+                                })
+                                ->sum('price');
+
+        // Calculate the total sum of proceeded payouts
+        $total_proceeded_payouts = Payout::where('dj_id', $dj_id)
+                                        ->where('status', Payout::STATUS_PROCESSED)
+                                        ->sum('amount');
+
+        // Calculate the available balance by deducting the proceeded payouts
+        $available_balance = round($total_paid_orders - $total_proceeded_payouts, 2);
+
         // Fetch all payouts from the database
         $payouts = Payout::where('dj_id', $dj_id)->get();
-    
-        // Return the payouts as a JSON response
-        return response()->json($payouts);
+
+        // Return the available balance and the payouts as a JSON response
+        return response()->json([
+            'available_balance' => $available_balance,
+            'payouts' => $payouts
+        ]);
     }
 
     public function updateStatus(Request $request, Payout $payout)
@@ -351,6 +383,33 @@ class PayoutController extends Controller
                 $lastTransaction->status = Transaction::STATUS_PAID;
                 $lastTransaction->save();
             }
+
+
+            $track = $order->track;
+            $user = $order->user;
+            $dj = $order->dj;
+            $userTelegramId = $user->telegram_id;
+            $djTelegramId = $dj->telegram_id;
+            $telegram = $this->useTelegram();
+
+            $message = "\nDJ: {$dj->stage_name}\nТрек: {$track->name}\nЦена: {$order->price}\nСообщение: {$order->message}";
+
+            $webAppDirectUrl = config('webapp.direct_url');
+            $tgWebAppUrl = "{$webAppDirectUrl}?startapp=order_{$orderId}";
+
+            // User Inline Keyboard with payment link
+            $userKeyboard = new InlineKeyboardMarkup([
+                [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrl]],
+            ]);
+
+            if ($userTelegramId) {
+                $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} оплачен, ожидайте ваш трек в течение 15 минут:{$message}", null, false, null, $userKeyboard);
+            }
+
+            if ($djTelegramId) {
+                $telegram->sendMessage($djTelegramId, "🎧#заказ_{$order->id} оплачен! Поставьте трек в течение 15 минут: {$message}", null, false, null, $userKeyboard);
+            }
+
             return response()->json(['message' => 'Payment successful']);
         } else {
             // Handle payment failure

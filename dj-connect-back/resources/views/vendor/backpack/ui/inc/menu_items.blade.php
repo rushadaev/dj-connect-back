@@ -6,3 +6,4 @@
 <x-backpack::menu-item title="DJ" icon="la la-headphones" :link="backpack_url('d-j')" />
 <x-backpack::menu-item title="Треки" icon="la la-music" :link="backpack_url('track')" />
 <x-backpack::menu-item title="Транзакции" icon="la la-exchange" :link="backpack_url('transaction')" />
+<x-backpack::menu-item title="Пользователи" icon="la la-users" :link="backpack_url('user')" />

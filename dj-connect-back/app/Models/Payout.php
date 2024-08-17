@@ -21,6 +21,8 @@ class Payout extends Model
     use CrudTrait;
     use HasFactory;
 
+    const STATUS_PENDING = 'pending';
+    const STATUS_PROCESSED = 'processed';
     /**
      * The attributes that are mass assignable.
      *

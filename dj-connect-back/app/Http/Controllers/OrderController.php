@@ -171,10 +171,14 @@ class OrderController extends Controller
         $userTelegramId = Auth::user()->telegram_id;
         $djTelegramId = $dj->telegram_id;
 
+        $webAppDirectUrl = config('webapp.direct_url');
+        $tgWebAppUrl = "{$webAppDirectUrl}?startapp=order_{$order->id}";
+
         $message = "\nDJ: {$dj->stage_name}\nТрек: {$track->name}\nЦена: {$order->price}\nСообщение: {$order->message}";
 
         // User Inline Keyboard
         $userKeyboard = new InlineKeyboardMarkup([
+            [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrl]],
             [['text' => '🙅‍♂️Отменить', 'callback_data' => "cancel_{$order->id}"]],
         ]);
 
@@ -182,8 +186,11 @@ class OrderController extends Controller
             $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} отправлен:{$message}", null, false, null, $userKeyboard);
         }
 
+       
+
         // DJ Inline Keyboard
         $djKeyboard = new InlineKeyboardMarkup([
+            [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrl]],
             [['text' => '✅Принять', 'callback_data' => "accept_{$order->id}"]],
             [['text' => '💰Изменить Цену', 'callback_data' => "change_price_{$order->id}"]],
             [['text' => '💩Отказать в песне', 'callback_data' => "decline_{$order->id}"]],
@@ -274,6 +281,25 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
+
+        $track = $order->track;
+        $user = $order->user;
+        $dj = $order->dj;
+        $userTelegramId = $user->telegram_id;
+        $telegram = $this->useTelegram();
+
+        $message = "\nDJ: {$dj->stage_name}\nТрек: {$track->name}\nЦена: {$order->price}\nСообщение: {$order->message}";
+
+        // User Inline Keyboard with payment link
+        $userKeyboard = new InlineKeyboardMarkup([
+            [['text' => '💳Оплатить', 'url' => $transaction->payment_url]],
+            [['text' => '🙅‍♂️Отменить', 'callback_data' => "cancel_{$order->id}"]],
+        ]);
+
+        if ($userTelegramId) {
+            $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} принят:{$message}", null, false, null, $userKeyboard);
+        }
+        
     
         return response()->json(['order' => $order, 'transaction' => $transaction]);
     }

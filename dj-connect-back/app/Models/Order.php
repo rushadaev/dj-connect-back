@@ -77,6 +77,8 @@ class Order extends Model
         // Generate payment URL (dummy implementation, replace with actual payment gateway API call)
         $paymentUrl = $url;
 
+        
+
         // Create a new transaction
         return Transaction::create([
             'order_id' => $this->id,

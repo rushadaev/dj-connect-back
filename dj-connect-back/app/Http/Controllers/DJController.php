@@ -9,6 +9,9 @@ use App\Models\Order;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Traits\UsesTelegram;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Info(
@@ -40,6 +43,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class DJController extends Controller
 {
+    use UsesTelegram;
     /**
      * @OA\Post(
      *      path="/dj/register",
@@ -609,7 +613,7 @@ class DJController extends Controller
             return response()->json(['error' => 'DJ not found'], 404);
         }
         $webAppDirectUrl = config('webapp.direct_url');
-        $tgWebAppUrl = "{$webAppDirectUrl}?startapp={$dj_id}";
+        $tgWebAppUrl = "{$webAppDirectUrl}?startapp=dj_{$dj_id}";
 
         $qrCode = QrCode::format('png')->size(300)->generate($tgWebAppUrl);
 
@@ -647,5 +651,83 @@ class DJController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to clear DJs.'], 500);
         }
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/dj/{dj_id}/qr-code",
+     *      operationId="sendQRCodeToDj",
+     *      tags={"DJ"},
+     *      summary="Send QR code to DJ via Telegram",
+     *      description="Generates a QR code for a DJ's profile and sends it directly to the DJ's Telegram chat.",
+     *      @OA\Parameter(
+     *          name="dj_id",
+     *          description="DJ ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="QR code sent successfully",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="QR code sent to DJ via Telegram")
+     *          )
+     *      ),
+     *      @OA\Response(response=400, description="Bad Request"),
+     *      @OA\Response(response=401, description="Unauthorized"),
+     *      @OA\Response(response=404, description="DJ not found"),
+     *      @OA\Response(response=500, description="Internal Server Error")
+     * )
+     */
+    public function sendQRCodeToDj($dj_id)
+    {
+        $dj = DJ::find($dj_id);
+
+        if (!$dj) {
+            return response()->json(['error' => 'DJ not found'], 404);
+        }
+
+        // Generate QR code
+        $webAppDirectUrl = config('webapp.direct_url');
+        $tgWebAppUrl = "{$webAppDirectUrl}?startapp=dj_{$dj_id}";
+        $qrCode = QrCode::format('png')->size(300)->generate($tgWebAppUrl);
+
+        // Save the QR code to a temporary file using Laravel's Storage facade
+        $tempFilePath = 'qr_codes/qrcode_' . $dj_id . '.png';
+        Storage::disk('local')->put($tempFilePath, $qrCode);
+
+        // Get the full path to the file
+        $fullTempFilePath = storage_path('app/' . $tempFilePath);
+
+        // Prepare the file for sending via Telegram using \CURLFile
+        $file = new \CURLFile($fullTempFilePath, 'image/png', 'qrcode.png');
+
+        // Log the temporary file path
+        \Log::info('Temporary QR Code File Path', ['filePath' => $fullTempFilePath]);
+
+        // Send the QR code directly to DJ's Telegram chat
+        $telegram = $this->useTelegram();
+        $djTelegramId = $dj->telegram_id;
+
+        if ($djTelegramId) {
+            try {
+                $response = $telegram->sendPhoto($djTelegramId, $file, "Вот ваш QR-код");
+                if ($response === false) {
+                    \Log::error("Failed to send photo via Telegram", ['chatId' => $djTelegramId]);
+                    throw new \Exception("Failed to send photo to Telegram.");
+                }
+            } catch (\Exception $e) {
+                \Log::error("Error sending photo to Telegram: " . $e->getMessage(), ['chatId' => $djTelegramId]);
+                return response()->json(['error' => 'Failed to send QR code via Telegram'], 500);
+            } finally {
+                // Clean up the temporary file
+                Storage::disk('local')->delete($tempFilePath);
+            }
+        }
+
+        return response()->json(['message' => 'QR code sent to DJ via Telegram'], 200);
     }
 }

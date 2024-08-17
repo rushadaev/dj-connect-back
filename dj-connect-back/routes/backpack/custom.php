@@ -21,6 +21,7 @@ Route::group([
     Route::crud('d-j', 'DJCrudController');
     Route::crud('track', 'TrackCrudController');
     Route::crud('transaction', 'TransactionCrudController');
+    Route::crud('user', 'UserCrudController');
 }); // this should be the absolute last line of this file
 
 /**

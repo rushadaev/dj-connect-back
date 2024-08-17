@@ -433,8 +433,8 @@ class TelegramController extends Controller
     
         $messageTitle = $status === Order::STATUS_ACCEPTED ? '🎉 Заказ принят' : '💰 Цена изменена';
     
-        // Notify User with "Оплатить" button
-        $this->notifyWithButton($telegramIds['user'], "{$messageTitle}\nВаш #заказ_{$orderId} принят с ценой: {$price}. Ожидаем оплаты.", 'Оплатить', 'pay_' . $orderId);
+        // Notification of the user implemeted in OrderController
+        // $this->notifyWithButton($telegramIds['user'], "{$messageTitle}\nВаш #заказ_{$orderId} принят с ценой: {$price}. Ожидаем оплаты.", 'Оплатить', 'pay_' . $orderId);
     
         // Notify DJ
         $this->notify($telegramIds['dj'], "{$messageTitle}\nЗаказ #заказ_{$orderId} принят с ценой: {$price}\nСообщение: {$message}");

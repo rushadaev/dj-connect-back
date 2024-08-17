@@ -491,6 +491,39 @@ paths:
           description: Unauthorized
         404:
           description: 'DJ not found'
+    post:
+      tags:
+        - DJ
+      summary: 'Send QR code to DJ via Telegram'
+      description: "Generates a QR code for a DJ's profile and sends it directly to the DJ's Telegram chat."
+      operationId: sendQRCodeToDj
+      parameters:
+        -
+          name: dj_id
+          in: path
+          description: 'DJ ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'QR code sent successfully'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'QR code sent to DJ via Telegram'
+                type: object
+        400:
+          description: 'Bad Request'
+        401:
+          description: Unauthorized
+        404:
+          description: 'DJ not found'
+        500:
+          description: 'Internal Server Error'
   /dj/clear:
     delete:
       tags:
@@ -868,8 +901,8 @@ paths:
     get:
       tags:
         - Payouts
-      summary: 'Get all payouts for a specific DJ'
-      description: 'Fetches all payouts associated with a specific DJ from the database.'
+      summary: 'Get all payouts and available balance for a specific DJ'
+      description: 'Fetches all payouts and the available balance associated with a specific DJ from the database.'
       operationId: c57c14bfe9164b2b793fc93caa528eb1
       parameters:
         -
@@ -881,13 +914,20 @@ paths:
             type: integer
       responses:
         200:
-          description: 'List of payouts for the DJ'
+          description: 'Payouts and available balance for the DJ'
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Payout'
+                properties:
+                  available_balance:
+                    description: 'Sum of paid orders'
+                    type: number
+                    format: float
+                  payouts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payout'
+                type: object
         404:
           description: 'DJ not found'
           content:
