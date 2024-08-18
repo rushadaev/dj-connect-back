@@ -395,7 +395,9 @@ class PayoutController extends Controller
             $message = "\nDJ: {$dj->stage_name}\nТрек: {$track->name}\nЦена: {$order->price}\nСообщение: {$order->message}";
 
             $webAppDirectUrl = config('webapp.direct_url');
-            $tgWebAppUrl = "{$webAppDirectUrl}?startapp=order_{$orderId}";
+            $webAppDirectUrlDj = config('webapp.direct_url_dj'); 
+            $tgWebAppUrl = "{$webAppDirectUrl}?startapp=order_{$order->id}";
+            $tgWebAppUrlDj = "{$webAppDirectUrlDj}?startapp=order_{$order->id}";
 
             // User Inline Keyboard with payment link
             $userKeyboard = new InlineKeyboardMarkup([
@@ -406,8 +408,12 @@ class PayoutController extends Controller
                 $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} оплачен, ожидайте ваш трек в течение 15 минут:{$message}", null, false, null, $userKeyboard);
             }
 
+            $djKeyboard = new InlineKeyboardMarkup([
+                [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrlDj]],
+            ]);
+
             if ($djTelegramId) {
-                $telegram->sendMessage($djTelegramId, "🎧#заказ_{$order->id} оплачен! Поставьте трек в течение 15 минут: {$message}", null, false, null, $userKeyboard);
+                $telegram->sendMessage($djTelegramId, "🎧#заказ_{$order->id} оплачен! Поставьте трек в течение 15 минут: {$message}", null, false, null, $djKeyboard);
             }
 
             return response()->json(['message' => 'Payment successful']);

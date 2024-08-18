@@ -38,6 +38,8 @@ Route::middleware(['telegram.auth'])->group(function () {
     Route::patch('/orders/{order_id}/accept', [OrderController::class, 'acceptOrder']);
     Route::patch('/orders/{order_id}/decline', [OrderController::class, 'declineOrder']);
     Route::patch('/orders/{order_id}/cancel', [OrderController::class, 'cancelOrder']);
+    Route::get('/orders/{order_id}', [OrderController::class, 'getOrderById']);
+    Route::get('/orders/{order_id}/status', [OrderController::class, 'getOrderStatus']);
 
     Route::patch('/transactions/{transaction_id}/mark-paid', [TransactionController::class, 'markTransactionPaid']);
     Route::patch('/transactions/{transaction_id}/cancel', [TransactionController::class, 'cancelTransaction']);

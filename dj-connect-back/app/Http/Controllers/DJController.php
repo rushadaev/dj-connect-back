@@ -86,18 +86,55 @@ class DJController extends Controller
             'email' => 'nullable|email',
             'price' => 'nullable|numeric',
             'website' => 'nullable|string',
+            'tracks' => 'nullable|array',
+            'tracks.*' => 'string|max:255', // Ensure each track name is a string
         ]);
-
+    
         $user = Auth::user();
-
+    
         try {
             $dj = $user->attachDJ($validated);
+    
+            if (!empty($validated['tracks'])) {
+                // Fetch existing tracks
+                $tracks = Track::whereIn('name', $validated['tracks'])->get();
+    
+                // Determine which tracks need to be created
+                $existingTrackNames = $tracks->pluck('name')->toArray();
+                $newTrackNames = array_diff($validated['tracks'], $existingTrackNames);
+    
+                // Create new tracks in a single query
+                if (!empty($newTrackNames)) {
+                    Track::insert(
+                        collect($newTrackNames)->map(function ($trackName) {
+                            return ['name' => $trackName, 'created_at' => now(), 'updated_at' => now()];
+                        })->toArray()
+                    );
+    
+                    // Fetch newly created tracks
+                    $newTracks = Track::whereIn('name', $newTrackNames)->get();
+                } else {
+                    $newTracks = collect();
+                }
+    
+                // Merge existing and new tracks
+                $allTracks = $tracks->merge($newTracks);
+    
+                // Prepare data for attaching with price
+                $trackData = $allTracks->mapWithKeys(function ($track) use ($dj, $validated) {
+                    return [$track->id => ['price' => $validated['price'] ?? $dj->price]];
+                })->toArray();
+    
+                // Attach all tracks to the DJ with prices
+                $dj->tracks()->syncWithoutDetaching($trackData);
+            }
+    
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ], 400);
         }
-
+    
         return response()->json($dj);
     }
 
@@ -131,6 +168,7 @@ class DJController extends Controller
      */
     public function profile(DJ $dj)
     {
+        $dj->load(['tracks:id,name,created_at']); // Assuming the track relationship has a foreign key dj_id
         return response()->json($dj);
     }
 

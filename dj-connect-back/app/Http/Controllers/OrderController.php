@@ -115,6 +115,7 @@ class OrderController extends Controller
      *          @OA\JsonContent(
      *              @OA\Property(property="dj_id", type="integer", example=1),
      *              @OA\Property(property="track_id", type="integer", example=1),
+     *              @OA\Property(property="custom_track", type="string", example="My Custom Track"),
      *              @OA\Property(property="price", type="number", format="float", example=19.99),
      *              @OA\Property(property="message", type="string", example="Please play this track!")
      *          )
@@ -133,11 +134,32 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'dj_id' => 'required|exists:djs,id',
-            'track_id' => 'required|exists:tracks,id',
+            'track_id' => 'nullable|exists:tracks,id',
+            'custom_track' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric',
             'message' => 'nullable|string|max:255',
         ]);
-    
+
         $dj = DJ::find($validated['dj_id']);
+
+        //Creating new track
+        $trackName = $validated['custom_track'] ?? null;
+        if ($trackName) {
+            // Check if a track with the same name already exists for this DJ
+            $existingTrack = Track::where('name', $trackName)->first();
+        
+            if ($existingTrack) {
+                $validated['track_id'] = $existingTrack->id;
+            } else {
+                // Create the new track
+                $track = Track::create(['name' => $trackName]);
+                // Attach the track to the DJ with the default price
+                $dj->tracks()->attach($track->id, ['price' => $dj->price]);
+        
+                $validated['track_id'] = $track->id;
+            }
+        }
+       
         $track = Track::find($validated['track_id']);
         
         $user_id = Auth::id();
@@ -155,13 +177,11 @@ class OrderController extends Controller
         }
     
     
-        $price = $dj->price;
-    
         $order = Order::create([
             'user_id' => $user_id,
             'dj_id' => $validated['dj_id'],
             'track_id' => $validated['track_id'],
-            'price' => $price,
+            'price' => $validated['price'],
             'message' => $validated['message'] ?? '',
             'status' => 'pending',
         ]);
@@ -172,8 +192,10 @@ class OrderController extends Controller
         $djTelegramId = $dj->telegram_id;
 
         $webAppDirectUrl = config('webapp.direct_url');
+        $webAppDirectUrlDj = config('webapp.direct_url_dj'); 
         $tgWebAppUrl = "{$webAppDirectUrl}?startapp=order_{$order->id}";
-
+        $tgWebAppUrlDj = "{$webAppDirectUrlDj}?startapp=order_{$order->id}";
+        
         $message = "\nDJ: {$dj->stage_name}\nТрек: {$track->name}\nЦена: {$order->price}\nСообщение: {$order->message}";
 
         // User Inline Keyboard
@@ -190,7 +212,7 @@ class OrderController extends Controller
 
         // DJ Inline Keyboard
         $djKeyboard = new InlineKeyboardMarkup([
-            [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrl]],
+            [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrlDj]],
             [['text' => '✅Принять', 'callback_data' => "accept_{$order->id}"]],
             [['text' => '💰Изменить Цену', 'callback_data' => "change_price_{$order->id}"]],
             [['text' => '💩Отказать в песне', 'callback_data' => "decline_{$order->id}"]],
@@ -439,7 +461,7 @@ class OrderController extends Controller
             return response()->json(['error' => 'DJ not found'], 404);
         }
 
-        $orders = Order::where('dj_id', $dj_id)->get();
+        $orders = Order::where('dj_id', $dj_id)->with(['track:id,name', 'dj:id,stage_name'])->get();
 
         return response()->json($orders);
     }
@@ -463,8 +485,88 @@ class OrderController extends Controller
      */
     public function getOrdersForUser()
     {
-        $orders = Auth::user()->orders;
+        $orders = Auth::user()->orders()
+                ->with(['track:id,name', 'dj:id,stage_name'])
+                ->get();
 
         return response()->json($orders);
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/orders/{id}",
+     *      operationId="getOrderById",
+     *      tags={"Order"},
+     *      summary="Get order by ID",
+     *      description="Returns the details of a specific order for the authenticated user",
+     *      security={{"telegramAuth":{}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          description="Order ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *          @OA\JsonContent(ref="#/components/schemas/Order")
+     *      ),
+     *      @OA\Response(response=404, description="Order not found"),
+     *      @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function getOrderById($id)
+    {
+        $order = Order::with(['track:id,name', 'dj:id,stage_name'])
+                    ->find($id);
+
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        return response()->json($order);
+    }
+
+    /**
+     * @OA\Get(
+     *      path="/orders/{id}/status",
+     *      operationId="getOrderStatus",
+     *      tags={"Order"},
+     *      summary="Get order status by ID",
+     *      description="Returns the status of a specific order for the authenticated user",
+     *      security={{"telegramAuth":{}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          description="Order ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="status", type="string")
+     *          )
+     *      ),
+     *      @OA\Response(response=404, description="Order not found"),
+     *      @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function getOrderStatus($id)
+    {
+        $order = Order::select('status')->find($id);
+
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        return response()->json(['status' => $order->status]);
     }
 }
