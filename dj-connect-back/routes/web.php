@@ -3,6 +3,7 @@ use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\DJController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PayoutController;
+use App\Http\Controllers\OrderController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -15,6 +16,7 @@ Route::get('/payment/return', [PayoutController::class, 'paymentReturn'])->name(
 Route::post('/webhook/payment/success', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
 
 
+Route::get('/order-updates/{order_id}', [OrderController::class, 'streamUpdates']);
 
 Route::group([
     'prefix'     => config('backpack.base.route_prefix', 'admin'),
@@ -27,4 +29,14 @@ Route::group([
     // your CRUD resources and other admin routes here
     // example:
     // Route::crud('article', 'ArticleCrudController');
+});
+
+
+use App\Events\OrderUpdated;
+use App\Events\OrderCreated;
+
+Route::get('/test-broadcast', function () {
+    $order = ['id' => 1, 'status' => 'updated'];
+    event(new OrderCreated($order));
+    return 'Event Broadcasted';
 });

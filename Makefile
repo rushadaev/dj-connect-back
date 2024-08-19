@@ -35,6 +35,9 @@ fresh:
 test:
 	docker-compose exec dj-connect-app php artisan test
 
+clean:
+	docker system prune -f
+
 setup:
 	@docker-compose exec dj-connect-app sh -c '[ -f .env ] && echo ".env file already exists. Skipping .env file creation." || (cp .env.example .env && echo ".env file created from .env.example.")'
 	@docker-compose exec dj-connect-app composer install

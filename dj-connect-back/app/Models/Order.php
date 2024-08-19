@@ -6,6 +6,8 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use App\Events\OrderUpdated;
+use App\Events\OrderCreated;
 
 class Order extends Model
 {
@@ -18,6 +20,12 @@ class Order extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_PRICE_CHANGED = 'price_changed';
     
+    protected $dispatchesEvents = [
+        'updated' => OrderUpdated::class,
+        'created' => OrderCreated::class,
+    ];
+    
+
     protected $fillable = [
         'user_id', 'dj_id', 'track_id', 'price', 'message', 'status'
     ];
@@ -26,7 +34,7 @@ class Order extends Model
         'is_paid',
     ];
 
-    protected $with = ['transactions'];
+    protected $with = ['transactions', 'track:id,name', 'dj'];
 
     public function user()
     {

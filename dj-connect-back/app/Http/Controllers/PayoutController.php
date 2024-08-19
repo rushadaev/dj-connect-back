@@ -12,6 +12,7 @@ use App\Models\DJ;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Traits\UsesTelegram;
+use App\Events\OrderUpdated;
 /**
  * @OA\Schema(
  *     schema="Payout",
@@ -384,6 +385,7 @@ class PayoutController extends Controller
                 $lastTransaction->save();
             }
 
+            event(new OrderUpdated($order));
 
             $track = $order->track;
             $user = $order->user;
@@ -405,7 +407,7 @@ class PayoutController extends Controller
             ]);
 
             if ($userTelegramId) {
-                $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} оплачен, ожидайте ваш трек в течение 15 минут:{$message}", null, false, null, $userKeyboard);
+                $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} оплачен, ожидайте ваш трек в течение 15 минут:{$message}", null, false, null, $userKeyboard);
             }
 
             $djKeyboard = new InlineKeyboardMarkup([
@@ -413,7 +415,7 @@ class PayoutController extends Controller
             ]);
 
             if ($djTelegramId) {
-                $telegram->sendMessage($djTelegramId, "🎧#заказ_{$order->id} оплачен! Поставьте трек в течение 15 минут: {$message}", null, false, null, $djKeyboard);
+                $telegram->notifyDj($djTelegramId, "🎧#заказ_{$order->id} оплачен! Поставьте трек в течение 15 минут: {$message}", null, false, null, $djKeyboard);
             }
 
             return response()->json(['message' => 'Payment successful']);

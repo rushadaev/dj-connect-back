@@ -1,0 +1,13 @@
+{
+    "name": "socketio-server",
+    "version": "1.0.0",
+    "description": "Socket.IO server for DJ Connect App",
+    "main": "socket-server.js",
+    "scripts": {
+      "start": "node socket-server.js"
+    },
+    "dependencies": {
+      "socket.io": "^4.0.0",
+      "redis": "^4.0.0"
+    }
+  }

@@ -11,6 +11,8 @@ use App\Traits\UsesTelegram;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use Illuminate\Support\Facades\Log;
 use App\Traits\UsesYooKassa;
+use App\Events\OrderUpdated;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * @OA\Schema(
@@ -205,7 +207,7 @@ class OrderController extends Controller
         ]);
 
         if ($userTelegramId) {
-            $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} отправлен:{$message}", null, false, null, $userKeyboard);
+            $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} отправлен:{$message}", null, false, null, $userKeyboard);
         }
 
        
@@ -219,7 +221,7 @@ class OrderController extends Controller
         ]);
 
         if ($djTelegramId) {
-            $telegram->sendMessage($djTelegramId, "🎧У вас новый #заказ_{$order->id}! {$message}", null, false, null, $djKeyboard);
+            $telegram->notifyDj($djTelegramId, "🎧У вас новый #заказ_{$order->id}! {$message}", null, false, null, $djKeyboard);
         }
 
         return response()->json($order);
@@ -304,6 +306,8 @@ class OrderController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
 
+        event(new OrderUpdated($order));
+
         $track = $order->track;
         $user = $order->user;
         $dj = $order->dj;
@@ -319,7 +323,7 @@ class OrderController extends Controller
         ]);
 
         if ($userTelegramId) {
-            $telegram->sendMessage($userTelegramId, "🎉 #заказ_{$order->id} принят:{$message}", null, false, null, $userKeyboard);
+            $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} принят:{$message}", null, false, null, $userKeyboard);
         }
         
     
@@ -461,7 +465,7 @@ class OrderController extends Controller
             return response()->json(['error' => 'DJ not found'], 404);
         }
 
-        $orders = Order::where('dj_id', $dj_id)->with(['track:id,name', 'dj:id,stage_name'])->get();
+        $orders = Order::where('dj_id', $dj_id)->with(['track:id,name', 'dj:id,stage_name'])->orderBy('updated_at', 'desc')->get();
 
         return response()->json($orders);
     }
@@ -487,6 +491,7 @@ class OrderController extends Controller
     {
         $orders = Auth::user()->orders()
                 ->with(['track:id,name', 'dj:id,stage_name'])
+                ->orderBy('updated_at', 'desc')
                 ->get();
 
         return response()->json($orders);
@@ -568,5 +573,30 @@ class OrderController extends Controller
         }
 
         return response()->json(['status' => $order->status]);
+    }
+
+
+    public function streamUpdates($order_id)
+    {
+        return response()->stream(function () use ($order_id) {
+            // Fetch the order by ID
+            $order = Order::with(['track:id,name', 'dj:id,stage_name'])->find($order_id);
+    
+            if (!$order) {
+                // Send an error message if the order is not found
+                echo "data: " . json_encode(['error' => 'Order not found']) . "\n\n";
+                flush();
+                return;
+            }
+    
+            // Send the order data as a JSON response
+            echo "data: " . json_encode($order) . "\n\n";
+            flush();
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+            'Connection' => 'keep-alive',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
     }
 }
