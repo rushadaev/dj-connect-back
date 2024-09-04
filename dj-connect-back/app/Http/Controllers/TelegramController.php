@@ -8,6 +8,7 @@ use TelegramBot\Api\Exception;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TransactionController;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 
@@ -367,9 +368,31 @@ class TelegramController extends Controller
         $order->status = 'completed'; // Update status to 'completed' or other appropriate status
     
         $order->save();
+        $this->thankClient($order, $bot);
     
         return response()->json(['order' => $order]);
          
+    }
+
+    protected function thankClient(Order $order, $bot)
+    {
+        // Получаем название трека
+        $trackName = $order->track->name;
+
+        $telegram_id = $order->user->telegram_id;
+
+        $webAppDirectUrl = config('webapp.direct_url');
+        $tgWebAppUrl = "{$webAppDirectUrl}?startapp=dj_{$order->dj_id}";
+        // Клавиатура для пользователя
+        $userKeyboard = new InlineKeyboardMarkup([
+            [['text' => '️🎧Заказать еще', 'url' => $tgWebAppUrl]],
+        ]);
+
+        // Отправляем благодарность клиенту
+        if ($telegram_id) {
+            $bot->sendMessage($telegram_id, "🙏 Спасибо за ваш заказ! Трек \"{$trackName}\" для заказа #{$order->id} был сыгран.", null, false, null, $userKeyboard);
+            Log::info("Благодарность отправлена клиенту для заказа {$order->id}"); 
+        }
     }
 
     protected function processDecline($chatId, $text, Client $bot)
