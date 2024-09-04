@@ -10,6 +10,7 @@
         "backpack/theme-tabler": "^1.2",
         "darkaonline/l5-swagger": "^8.6",
         "laravel/framework": "^11.9",
+        "laravel/horizon": "^5.28",
         "laravel/tinker": "^2.9",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.9",

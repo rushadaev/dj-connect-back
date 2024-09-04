@@ -748,6 +748,7 @@ class DJController extends Controller
 
         // Send the QR code directly to DJ's Telegram chat
         $telegram = $this->useTelegram();
+        $telegram->setBotToken(config('telegram.bot_djs_token'));
         $djTelegramId = $dj->telegram_id;
 
         if ($djTelegramId) {

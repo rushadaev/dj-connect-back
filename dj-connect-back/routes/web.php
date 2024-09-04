@@ -12,6 +12,8 @@ Route::get('/', function () {
 Route::post('/webhook/telegram', [TelegramController::class, 'handleWebhook']);
 Route::get('/dj/{dj_id}/qr-code', [DJController::class, 'generateQRCode']);
 
+Route::get('/generate-payment-link', [PaymentController::class, 'generatePaymentLink'])->name('generate.payment.link');
+
 Route::get('/payment/return', [PayoutController::class, 'paymentReturn'])->name('payment.return');
 Route::post('/webhook/payment/success', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
 

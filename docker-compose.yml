@@ -65,6 +65,50 @@ services:
     networks:
       - app-network
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scheduler
+    user: "33:33" # Ensure container runs as www-data user
+    volumes:
+      - ./dj-connect-back:/var/www/dj-connect-back
+    depends_on:
+      - dj-connect-app
+      - db
+      - redis
+    networks:
+      - app-network
+    env_file:
+      - ./dj-connect-back/.env
+    command: >
+      sh -c "
+      sleep 10 &&
+      /usr/local/bin/cron-schedule.sh"
+    restart: always
+
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: horizon
+    user: "33:33" # Ensure container runs as www-data user
+    volumes:
+      - ./dj-connect-back:/var/www/dj-connect-back
+    depends_on:
+      - dj-connect-app
+      - db
+      - redis
+    networks:
+      - app-network
+    env_file:
+      - ./dj-connect-back/.env
+    command: >
+      sh -c "
+      sleep 10 &&
+      php /var/www/dj-connect-back/artisan horizon"
+    restart: always
+
 networks:
   app-network:
     driver: bridge

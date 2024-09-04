@@ -67,29 +67,20 @@ class Order extends Model
     {
         // Check if there's already a pending transaction and cancel it
         $existingTransaction = $this->transactions()->where('status', Transaction::STATUS_PENDING)->first();
-
+    
         if ($existingTransaction) {
             $existingTransaction->cancel();
         }
-
-        $amount = $amount;
+    
+        // Set transaction data
         $orderId = $this->id;
-        $description = 'Test payment for order';
-        try {
-            $url = $yookassa->createPaymentLink($amount, $orderId, $description);
-        } catch (\Exception $e) {
-            $url = $e;
-            Log::error($e->getMessage());
-        }
-
-        // Generate payment URL (dummy implementation, replace with actual payment gateway API call)
-        $paymentUrl = $url;
-
-        
-
+    
+        // Generate URL to the Laravel route that will generate the payment link
+        $paymentUrl = route('generate.payment.link', ['orderId' => $orderId, 'amount' => $amount]);
+    
         // Create a new transaction
         return Transaction::create([
-            'order_id' => $this->id,
+            'order_id' => $orderId,
             'amount' => $amount,
             'payment_url' => $paymentUrl,
             'status' => Transaction::STATUS_PENDING,

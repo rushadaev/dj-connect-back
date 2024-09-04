@@ -1,0 +1,2 @@
+* * * * * cd /var/www/dj-connect-back && php artisan schedule:run --no-ansi >> /var/www/dj-connect-back/storage/logs/cron.log 2>&1
+* * * * * echo "Cron is working at $(date)" >> /var/www/dj-connect-back/storage/logs/cron_test.log 2>&1
