@@ -35,6 +35,7 @@ Route::middleware(['telegram.auth'])->group(function () {
     Route::get('/dj/{dj_id}/orders', [OrderController::class, 'getOrdersForDJ']);
 
     Route::post('/orders', [OrderController::class, 'createOrder']);
+    Route::patch('/orders/{order_id}/time', [OrderController::class, 'updateTime']);
     Route::patch('/orders/{order_id}/accept', [OrderController::class, 'acceptOrder']);
     Route::patch('/orders/{order_id}/decline', [OrderController::class, 'declineOrder']);
     Route::patch('/orders/{order_id}/cancel', [OrderController::class, 'cancelOrder']);

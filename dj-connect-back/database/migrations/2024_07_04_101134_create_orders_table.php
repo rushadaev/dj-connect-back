@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('message')->nullable();
             $table->string('status')->default('pending');
             $table->timestamp('time_slot')->nullable(); // Time slot for playing the track
+            $table->string('timezone')->nullable();
             $table->boolean('reminder_sent')->default(false); // Indicates if reminder was sent to DJ
             $table->boolean('notification_sent')->default(false); // Indicates if notification was sent to the client
             $table->boolean('track_played')->default(false); // Indicates if the track has been played

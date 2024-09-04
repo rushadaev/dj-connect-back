@@ -116,6 +116,9 @@ class TelegramController extends Controller
                     case 'collect_message':
                         $this->collectMessage($chatId, $text, $session, $bot);
                         break;
+                    case 'collect_timeslot':
+                        $this->collectTimeslot($chatId, $text, $session, $bot);
+                        break;
                     case 'collect_decline_message':
                         $this->collectDeclineMessage($chatId, $text, $session, $bot);
                         break;
@@ -271,6 +274,32 @@ class TelegramController extends Controller
         Cache::forget($chatId);
     }
 
+    protected function collectTimeslot($chatId, $text, $session, Client $bot)
+    {
+        // Validate time format (e.g., HH:MM)
+        if (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $text)) {
+            $orderId = $session['order_id'];
+
+            // Save the time slot to the order
+            Order::where('id', $orderId)->update(['time_slot' => now()->format('Y-m-d') . ' ' . $text]);
+
+            $bot->sendMessage($chatId, "🕒 Время $text успешно сохранено для заказа #$orderId.");
+            
+            // Clear session
+            Cache::forget($chatId);
+        } else {
+            $bot->sendMessage($chatId, '⛔️ Неверный формат времени. Пожалуйста, введите время в формате HH:MM (например, 21:00).');
+        }
+    }
+
+    protected function processEnterTimeslot($chatId, $text, Client $bot)
+    {
+        $orderId = str_replace('enter_timeslot_', '', $text);
+        // Cache order id to collect time slot
+        Cache::put($chatId, ['action' => 'collect_timeslot', 'order_id' => $orderId], now()->addMinutes(5));
+        $bot->sendMessage($chatId, '🕒 Пожалуйста, введите время для трека (например, 21:00)');
+    }
+
     protected function processCallbackData($chatId, $text, Client $bot, $callbackQuery)
     {
         if (strpos($text, 'choose_track_') !== false) {
@@ -288,6 +317,10 @@ class TelegramController extends Controller
             $this->processPayment($chatId, $text, $bot);
         } elseif (strpos($text, 'confirm_payment_') !== false) {
             $this->confirmPayment($chatId, $text, $bot);
+        } elseif (strpos($text, 'enter_timeslot_') !== false) {
+            $this->processEnterTimeslot($chatId, $text, $bot);
+        } elseif (strpos($text, 'finish_') !== false) {
+            $this->processFinish($chatId, $text, $bot);
         }
     }
 
@@ -317,6 +350,26 @@ class TelegramController extends Controller
         // Cache order id to collect price and message
         Cache::put($chatId, ['action' => 'collect_message', 'order_id' => $orderId], now()->addMinutes(5));
         $bot->sendMessage($chatId, '📨 Добавьте сообщение к заказу');
+    }
+    
+    protected function processFinish($chatId, $text, Client $bot)
+    {
+        $orderId = str_replace('finish_', '', $text);
+
+        $order = Order::find($orderId);
+    
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+    
+        // Set the track as played
+        $order->track_played = true;
+        $order->status = 'completed'; // Update status to 'completed' or other appropriate status
+    
+        $order->save();
+    
+        return response()->json(['order' => $order]);
+         
     }
 
     protected function processDecline($chatId, $text, Client $bot)

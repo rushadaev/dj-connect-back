@@ -3,7 +3,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\YooKassaService; // Assuming you have a service for YooKassa
-use App\Models\Transaction;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
@@ -11,6 +10,7 @@ use App\Models\DJ;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Traits\UsesTelegram;
+use App\Traits\UsesYooKassa;
 use App\Events\OrderUpdated;
 
 class PaymentController extends Controller
@@ -86,20 +86,21 @@ class PaymentController extends Controller
 
             // User Inline Keyboard with payment link
             $userKeyboard = new InlineKeyboardMarkup([
-                [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrl]],
+                [['text' => '🕒 Указать время', 'callback_data' => "enter_timeslot_{$order->id}"]],
+                [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrl]]
             ]);
 
             if ($userTelegramId) {
-                $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} оплачен, ожидайте ваш трек в течение 15 минут:{$message}", null, false, null, $userKeyboard);
+                $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} оплачен. Нажмите 'Указать время', и введите когда нужно поставить трек.", null, false, null, $userKeyboard);
             }
 
-            $djKeyboard = new InlineKeyboardMarkup([
-                [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrlDj]],
-            ]);
+            // $djKeyboard = new InlineKeyboardMarkup([
+            //     [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrlDj]],
+            // ]);
 
-            if ($djTelegramId) {
-                $telegram->notifyDj($djTelegramId, "🎧#заказ_{$order->id} оплачен! Поставьте трек в течение 15 минут: {$message}", null, false, null, $djKeyboard);
-            }
+            // if ($djTelegramId) {
+            //     $telegram->notifyDj($djTelegramId, "🎧#заказ_{$order->id} оплачен! {$message}", null, false, null, $djKeyboard);
+            // }
 
             return response()->json(['message' => 'Payment successful']);
         } else {

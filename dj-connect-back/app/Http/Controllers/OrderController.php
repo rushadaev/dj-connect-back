@@ -140,6 +140,7 @@ class OrderController extends Controller
             'custom_track' => 'nullable|string|max:255',
             'price' => 'nullable|numeric',
             'message' => 'nullable|string|max:255',
+            'timezone' => 'nullable|string'
         ]);
 
         $dj = DJ::find($validated['dj_id']);
@@ -185,6 +186,7 @@ class OrderController extends Controller
             'track_id' => $validated['track_id'],
             'price' => $validated['price'],
             'message' => $validated['message'] ?? '',
+            'timezone' => $validated['timezone'] ?? '',
             'status' => 'pending',
         ]);
     
@@ -278,6 +280,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'price' => 'required|numeric|min:0',
             'message' => 'nullable|string|max:255',
+            'timezone' => 'nullable|string'
         ]);
     
         $order = Order::find($order_id);
@@ -296,6 +299,7 @@ class OrderController extends Controller
     
         $order->price = $validated['price'];
         $order->message = $validated['message'] ?? 'Order accepted';
+        $order->timezone = $validated['timezone'] ?? $order->timezone;
         $order->save();
     
         $yookassa = $this->yooKassaService;
@@ -328,6 +332,26 @@ class OrderController extends Controller
         
     
         return response()->json(['order' => $order, 'transaction' => $transaction]);
+    }
+
+    public function updateTime(Request $request, $order_id)
+    {
+        $validated = $request->validate([
+            'time_slot' => 'required|date_format:Y-m-d\TH:i' // Validate datetime-local format
+        ]);
+    
+        $order = Order::find($order_id);
+    
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+    
+        // Convert time_slot to the correct format
+        $datetime = new \DateTime($validated['time_slot']);
+        $order->time_slot = $datetime->format('Y-m-d H:i:s'); // Save in server timezone
+        $order->save();
+    
+        return response()->json(['order' => $order]);
     }
 
     /**

@@ -4,6 +4,7 @@ use App\Http\Controllers\DJController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PayoutController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -14,8 +15,8 @@ Route::get('/dj/{dj_id}/qr-code', [DJController::class, 'generateQRCode']);
 
 Route::get('/generate-payment-link', [PaymentController::class, 'generatePaymentLink'])->name('generate.payment.link');
 
-Route::get('/payment/return', [PayoutController::class, 'paymentReturn'])->name('payment.return');
-Route::post('/webhook/payment/success', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
+Route::get('/payment/return', [PaymentController::class, 'paymentReturn'])->name('payment.return');
+Route::post('/webhook/payment/success', [PaymentController::class, 'paymentReturn'])->name('payment.success');
 
 
 Route::get('/order-updates/{order_id}', [OrderController::class, 'streamUpdates']);

@@ -27,7 +27,7 @@ class Order extends Model
     
 
     protected $fillable = [
-        'user_id', 'dj_id', 'track_id', 'price', 'message', 'status'
+        'user_id', 'dj_id', 'track_id', 'price', 'message', 'status', 'timezone', 'time_slot', 'reminder_sent', 'notification_sent', 'track_played'
     ];
 
     protected $appends = [
