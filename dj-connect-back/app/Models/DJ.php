@@ -5,6 +5,7 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Schema(
@@ -33,8 +34,13 @@ class DJ extends Model
         'sex',
         'phone',
         'email',
-        'website'
+        'website',
+        'photo',
+        'description',
+        'views'
     ];
+
+    protected $appends = ['photo_url'];
 
     /**
      * Get the user that owns the DJ.
@@ -62,5 +68,15 @@ class DJ extends Model
     public function getTelegramIdAttribute()
     {
         return $this->user->telegram_id;
+    }
+
+    public function getPhotoUrlAttribute()
+    {
+        if (!$this->photo) {
+            return null;
+        }
+        
+        $path = Storage::url($this->photo);
+        return url($path);  // This will prepend the full domain
     }
 }

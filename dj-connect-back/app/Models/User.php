@@ -42,6 +42,7 @@ class User extends Authenticatable
 
     protected $appends = [
         'is_dj',
+        'settings'
     ];
 
     /**
@@ -99,5 +100,9 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function getSettingsAttribute(){
+        return Setting::first();
     }
 }

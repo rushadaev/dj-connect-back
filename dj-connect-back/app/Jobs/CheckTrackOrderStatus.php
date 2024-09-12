@@ -42,6 +42,7 @@ class CheckTrackOrderStatus implements ShouldQueue
             // Convert current time to the order's timezone
             $nowInOrderTimezone = now()->setTimezone($timezone);
             
+            $notificationBeforeUpdate = $order->notification_sent;
             // If the reminder hasn't been sent and it's time to send it
             if (!$order->notification_sent && $nowInOrderTimezone->greaterThanOrEqualTo($orderTimeSlot->subMinutes(5))) {
                 // Send notification to DJ and User
@@ -58,7 +59,7 @@ class CheckTrackOrderStatus implements ShouldQueue
                     // Close the order and thank the client
                     $order->update(['status' => 'completed']);
                     $this->thankClient($order);
-                } elseif (!$order->reminder_sent && !$order->track_played) {
+                } elseif ($notificationBeforeUpdate && !$order->reminder_sent && !$order->track_played) {
                     // If the track wasn't played, remind the DJ again
                     $this->remindDJToPlayTrack($order);
 

@@ -12,6 +12,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Traits\UsesTelegram;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Jobs\SendTelegramMessage;
 
 /**
  * @OA\Info(
@@ -128,6 +129,13 @@ class DJController extends Controller
                 // Attach all tracks to the DJ with prices
                 $dj->tracks()->syncWithoutDetaching($trackData);
             }
+            
+            $nickname = $user->phone_number ?? '';
+            $webAppDirectUrl = config('webapp.direct_url');
+            $tgWebAppUrl = "{$webAppDirectUrl}?startapp=dj_{$dj->id}";
+
+            $linkString = '<a href="'.$tgWebAppUrl.'">DJ</a>';
+            SendTelegramMessage::dispatch(config('telegram.notification_group'), "@{$nickname} зарегистрировался как {$linkString}", 'HTML'); 
     
         } catch (\Exception $e) {
             return response()->json([
@@ -168,12 +176,20 @@ class DJController extends Controller
      */
     public function profile(DJ $dj)
     {
-        $dj->load(['tracks:id,name,created_at']); // Assuming the track relationship has a foreign key dj_id
+        // Increment the views count
+        $dj->increment('views');
+    
+        // Reload the DJ model to get the updated view count
+        $dj->refresh();
+    
+        // Load the related tracks
+        $dj->load(['tracks:id,name,created_at']);
+    
         return response()->json($dj);
     }
 
     /**
-     * @OA\Put(
+     * @OA\Post(
      *      path="/dj/profile/{id}",
      *      operationId="updateDJProfile",
      *      tags={"DJ"},
@@ -199,7 +215,9 @@ class DJController extends Controller
      *              @OA\Property(property="sex", type="string", example="Gender"),
      *              @OA\Property(property="phone", type="string", example="+1234567890"),
      *              @OA\Property(property="email", type="string", format="email", example="dj@example.com"),
-     *              @OA\Property(property="website", type="string", example="http://example.com")
+     *              @OA\Property(property="website", type="string", example="http://example.com"),
+     *              @OA\Property(property="description", type="string", example="Experienced DJ with a passion for electronic music"),
+     *              @OA\Property(property="photo", type="string", format="binary")
      *          )
      *      ),
      *      @OA\Response(
@@ -224,7 +242,19 @@ class DJController extends Controller
             'phone' => 'nullable|string',
             'email' => 'nullable|email',
             'website' => 'nullable|string',
+            'description' => 'nullable|string',
+            'photo' => 'nullable|image|max:64000', // 2MB Max
         ]);
+       
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($dj->photo) {
+                Storage::disk('public')->delete($dj->photo);
+            }
+            // Store new photo
+            $path = $request->file('photo')->store('dj_photos', 'public');
+            $validated['photo'] = $path;
+        }
 
         $dj->update(array_filter($validated));
 

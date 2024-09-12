@@ -21,7 +21,7 @@ class TelegramService
     }
     
 
-    public function sendMessage($chatId, $message, $parseMode = null, $disableWebPagePreview = false, $replyToMessageId = null, InlineKeyboardMarkup $replyMarkup = null)
+    public function sendMessage($chatId, $message, $parseMode = null, $disableWebPagePreview = true, $replyToMessageId = null, InlineKeyboardMarkup $replyMarkup = null)
     {
         return $this->telegram->sendMessage($chatId, $message, $parseMode, $disableWebPagePreview, $replyToMessageId, $replyMarkup);
     }

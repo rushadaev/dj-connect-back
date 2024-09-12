@@ -12,6 +12,8 @@ use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use Illuminate\Support\Facades\Log;
 use App\Traits\UsesYooKassa;
 use App\Events\OrderUpdated;
+use App\Jobs\SendTelegramMessage;
+use App\Models\User;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -211,9 +213,7 @@ class OrderController extends Controller
         if ($userTelegramId) {
             $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} отправлен:{$message}", null, false, null, $userKeyboard);
         }
-
        
-
         // DJ Inline Keyboard
         $djKeyboard = new InlineKeyboardMarkup([
             [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrlDj]],
@@ -225,6 +225,12 @@ class OrderController extends Controller
         if ($djTelegramId) {
             $telegram->notifyDj($djTelegramId, "🎧У вас новый #заказ_{$order->id}! {$message}", null, false, null, $djKeyboard);
         }
+
+        $user = User::find($user_id);
+        $nickname = $user->phone_number ?? '';
+        $djnickname = $dj->user->phone_number ?? $dj->stage_name;
+        $linkString = '<a href="'.$tgWebAppUrlDj.'">заказ</a>';
+        SendTelegramMessage::dispatch(config('telegram.notification_group'), "@{$nickname} создал {$linkString} у @{$djnickname}", 'HTML'); 
 
         return response()->json($order);
     }
@@ -329,7 +335,18 @@ class OrderController extends Controller
         if ($userTelegramId) {
             $telegram->notifyUser($userTelegramId, "🎉 #заказ_{$order->id} принят:{$message}", null, false, null, $userKeyboard);
         }
-        
+
+
+        $webAppDirectUrl = config('webapp.direct_url');
+        $webAppDirectUrlDj = config('webapp.direct_url_dj'); 
+        $tgWebAppUrl = "{$webAppDirectUrl}?startapp=order_{$order->id}";
+        $tgWebAppUrlDj = "{$webAppDirectUrlDj}?startapp=order_{$order->id}";
+
+        $nickname = $user->phone_number ?? '';
+        $djnickname = $dj->user->phone_number ?? $dj->stage_name;
+        $linkString = '<a href="'.$tgWebAppUrlDj.'">заказ</a>';
+        SendTelegramMessage::dispatch(config('telegram.notification_group'), "DJ @{$djnickname} принял заказ {$linkString} у @{$nickname}", 'HTML'); 
+
     
         return response()->json(['order' => $order, 'transaction' => $transaction]);
     }
@@ -337,7 +354,7 @@ class OrderController extends Controller
     public function updateTime(Request $request, $order_id)
     {
         $validated = $request->validate([
-            'time_slot' => 'required|date_format:Y-m-d\TH:i' // Validate datetime-local format
+            'time_slot' => 'required|date_format:H:i' // Validate time in HH:mm format
         ]);
     
         $order = Order::find($order_id);
@@ -346,10 +363,33 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
     
-        // Convert time_slot to the correct format
-        $datetime = new \DateTime($validated['time_slot']);
-        $order->time_slot = $datetime->format('Y-m-d H:i:s'); // Save in server timezone
+        // Combine the current date with the validated time
+        $currentDate = now()->format('Y-m-d');
+        $combinedDateTime = $currentDate . ' ' . $validated['time_slot'] . ':00'; // Add seconds as 00
+    
+        // Save the full timestamp in the database
+        $order->time_slot = $combinedDateTime;
         $order->save();
+
+        $webAppDirectUrlDj = config('webapp.direct_url_dj'); 
+        $tgWebAppUrlDj = "{$webAppDirectUrlDj}?startapp=order_{$order->id}";
+        
+        $track = $order->track;
+        
+        $message = "\nПользователь попросил поставить трек: {$track->name} в {$order->time_slot}\nСообщение: {$order->message}";
+
+        // DJ Inline Keyboard
+        $djKeyboard = new InlineKeyboardMarkup([
+            [['text' => '❇️Открыть заказ', 'url' => $tgWebAppUrlDj]],
+        ]);
+
+        $djTelegramId = $order->dj->telegram_id;
+
+        $telegram = $this->useTelegram();
+        
+        if ($djTelegramId) {
+            $telegram->notifyDj($djTelegramId, "🎧У вас новый #заказ_{$order->id}! {$message}", null, false, null, $djKeyboard);
+        }
     
         return response()->json(['order' => $order]);
     }

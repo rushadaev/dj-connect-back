@@ -307,6 +307,8 @@ class PayoutController extends Controller
             return response()->json(['error' => 'DJ not found'], 404);
         }
 
+        $applicationFeePercent = 10;
+
         // Calculate the total sum of paid orders
         $total_paid_orders = Order::where('dj_id', $dj_id)
                                 ->whereHas('transactions', function ($query) {
@@ -314,9 +316,11 @@ class PayoutController extends Controller
                                 })
                                 ->sum('price');
 
+        //Deduct application fee
+        $total_paid_orders -= round($total_paid_orders * ($applicationFeePercent / 100), 2); 
+
         // Calculate the total sum of proceeded payouts
         $total_proceeded_payouts = Payout::where('dj_id', $dj_id)
-                                        ->where('status', Payout::STATUS_PROCESSED)
                                         ->sum('amount');
 
         // Calculate the available balance by deducting the proceeded payouts

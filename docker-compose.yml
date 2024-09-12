@@ -10,6 +10,7 @@ services:
     tty: true
     volumes:
       - ./dj-connect-back:/var/www/dj-connect-back
+      - ./php-config/custom.ini:/usr/local/etc/php/conf.d/zzz-custom.ini
     networks:
       - app-network
 

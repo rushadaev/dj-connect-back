@@ -6,6 +6,7 @@ use App\Services\YooKassaService; // Assuming you have a service for YooKassa
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use App\Jobs\SendTelegramMessage;
 use App\Models\DJ;
 use App\Models\Order;
 use App\Models\Transaction;
@@ -101,6 +102,12 @@ class PaymentController extends Controller
             // if ($djTelegramId) {
             //     $telegram->notifyDj($djTelegramId, "🎧#заказ_{$order->id} оплачен! {$message}", null, false, null, $djKeyboard);
             // }
+
+            $price = $order->price;
+            $nickname = $user->phone_number ?? '';
+            $djnickname = $dj->user->phone_number ?? $dj->stage_name;
+            $linkString = '<a href="'.$tgWebAppUrlDj.'">заказ</a>';
+            SendTelegramMessage::dispatch(config('telegram.notification_group'), "@{$nickname} оплатил {$linkString} у @{$djnickname} на сумму {$price}", 'HTML'); 
 
             return response()->json(['message' => 'Payment successful']);
         } else {

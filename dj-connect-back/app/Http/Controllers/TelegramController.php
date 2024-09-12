@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TransactionController;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use App\Jobs\SendTelegramMessage;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
+use App\Models\User;
 
 class TelegramController extends Controller
 {
@@ -28,12 +30,35 @@ class TelegramController extends Controller
         }
     }
 
+    public function handleWebhookDj(Request $request)
+    {
+        $bot = new Client(config('telegram.bot_djs_token'));
+
+        $this->handleCommands($bot);
+        $this->handleMessages($bot);
+
+        try {
+            $bot->run();
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+        }
+    }
+
     protected function handleCommands(Client $bot)
     {
         $bot->command('ping', function ($message) use ($bot) {
             $bot->sendMessage($message->getChat()->getId(), 'pong!');
         });
         
+        $bot->command('start', function ($message) use ($bot){
+            // $bot->sendMessage($message->getChat()->getId(), 'to!');
+
+            $user = User::where('telegram_id', $message->getChat()->getId())->first();
+            $nickname = $user->phone_number ?? $message->getChat()->getId(); 
+
+            SendTelegramMessage::dispatch(config('telegram.notification_group'), "@{$nickname} запустил бота", 'HTML'); 
+        });
+
         $bot->command('tracks', function ($message) use ($bot) {
             $chatId = $message->getChat()->getId();
             $params = explode(' ', $message->getText(true));
@@ -513,7 +538,7 @@ class TelegramController extends Controller
         // $this->notifyWithButton($telegramIds['user'], "{$messageTitle}\nВаш #заказ_{$orderId} принят с ценой: {$price}. Ожидаем оплаты.", 'Оплатить', 'pay_' . $orderId);
     
         // Notify DJ
-        $this->notify($telegramIds['dj'], "{$messageTitle}\nЗаказ #заказ_{$orderId} принят с ценой: {$price}\nСообщение: {$message}");
+        $this->notify($telegramIds['dj'], "{$messageTitle}\nЗаказ #заказ_{$orderId} принят с ценой: {$price}\nСообщение: {$message}", "dj");
     }
     protected function notifyWithButton($telegramId, $message, $buttonText, $callbackData)
     {
@@ -540,7 +565,7 @@ class TelegramController extends Controller
         $this->notify($telegramIds['user'], "Ваш заказ #заказ_{$orderId} отклонён с сообщением: {$message}");
 
         // Notify DJ
-        $this->notify($telegramIds['dj'], "Вы отменили заказ #заказ_{$orderId} отклонён с сообщением: {$message}");
+        $this->notify($telegramIds['dj'], "Вы отменили заказ #заказ_{$orderId} отклонён с сообщением: {$message}", "dj");
     }
 
     protected function cancelOrder($orderId)
@@ -554,12 +579,17 @@ class TelegramController extends Controller
         // Notify User
         $this->notify($telegramIds['user'], "Ваш заказ #заказ_{$orderId} отменен.");
         // Notify DJ
-        $this->notify($telegramIds['dj'], "Заказ #заказ_{$orderId} отменен пользователем.");
+        $this->notify($telegramIds['dj'], "Заказ #заказ_{$orderId} отменен пользователем.", "dj");
     }
 
-    protected function notify($telegramId, $message)
+    protected function notify($telegramId, $message, $flow=null)
     {
-        $bot = new Client(config('telegram.bot_token'));
+        if($flow == 'dj'){
+            $bot = new Client(config('telegram.bot_token'));
+        } else {
+            $bot = new Client(config('telegram.bot_djs_token'));
+        }
+        
         $bot->sendMessage($telegramId, $message);
     }
 }
